@@ -10,7 +10,7 @@ declare function test:should-be-able-to-test-number-equality()
 
 declare function test:should-be-able-to-test-string-equality()
 {
-    assert:equal('foo', 'foo1')
+    assert:equal('foo', 'not foo so should fail')
 };
 
 declare function test:should-be-able-to-return-multiple-asserts()
