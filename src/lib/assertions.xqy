@@ -32,3 +32,11 @@ declare function assert:exists($actual as item()*)
     return utils:test-response('not-empty', $status, $actual, 'item()+')
 };
 
+declare function assert:error($actual as item()*, $expected-error-name as xs:string)
+{
+  let $actual-error-name := 
+    if ($actual instance of element(error:error)) then $actual/error:name/fn:string()
+    else ()
+  let $status := $actual-error-name = $expected-error-name
+  return utils:test-response('error', $status, ($actual-error-name, $actual)[1], $expected-error-name)
+};
