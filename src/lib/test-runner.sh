@@ -1,5 +1,5 @@
 #!/bin/bash
-URL=http://localhost:8889/src/lib/test-runner.xqy
+BASEURL=http://localhost:8889/src/lib/test-runner.xqy
 START=$(date +%s)
 DIR=
 MODULES=
@@ -11,27 +11,33 @@ STATUS=0
 
 while getopts 'u:m:t:d:h' OPTION
 do
-    case $OPTION in
-        u) URL="$OPTARG";;
-        m) MODULES="$OPTARG";;
-        t) TESTS="$OPTARG";;
-        d) DIR="$OPTARG";;
-        *)
-            echo "usage: [-u test runner url] [-m module name pattern] [-t test name pattern] [-d test directory]"
-            exit 1;;
-    esac
+  case $OPTION in
+    u) BASEURL="$OPTARG";;
+    m) MODULES="$OPTARG";;
+    t) TESTS="$OPTARG";;
+    d) DIR="$OPTARG";;
+    *)
+      echo "usage: [-u test runner url] [-m module name pattern] [-t test name pattern] [-d test directory]"
+      exit 1;;
+  esac
 done
 
-RESPONSE=$(curl --silent "$URL?format=text&modules=$MODULES&tests=$TESTS&dir=$DIR")
+URL="$BASEURL?format=text&modules=$MODULES&tests=$TESTS&dir=$DIR"
+RESPONSE=$(curl --silent "$URL")
+
+if [ "$RESPONSE" = "" ]; then
+  echo "Error: No response from $URL"
+  STATUS=1
+fi
 
 while read -r LINE; do
-    case $LINE in
-        Module*) echo -ne $CDEFAULT;;
-        *PASSED) echo -ne $CGREEN;;
-        *FAILED) STATUS=1; echo -ne $CRED;;
-        Finished*) echo -ne $CDEFAULT;;
-    esac
-    echo $LINE
+  case $LINE in
+    Module*) echo -ne $CDEFAULT;;
+    *PASSED) echo -ne $CGREEN;;
+    *FAILED) STATUS=1; echo -ne $CRED;;
+    Finished*) echo -ne $CDEFAULT;;
+  esac
+  echo $LINE
 done <<< "$RESPONSE"
 
 DIFF=$(( $(date +%s) - $START ))
