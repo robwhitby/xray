@@ -1,5 +1,5 @@
 #!/bin/bash
-BASEURL=http://localhost:8889/src/lib/test-runner.xqy
+BASEURL=http://localhost:8889/test-runner.xqy
 START=$(date +%s)
 DIR=
 MODULES=
@@ -17,7 +17,7 @@ do
     t) TESTS="$OPTARG";;
     d) DIR="$OPTARG";;
     *)
-      echo "usage: [-u test runner url] [-m module name pattern] [-t test name pattern] [-d test directory]"
+      echo "usage: [-u URL of test-runner.xqy] [-m module name pattern] [-t test name pattern] [-d test root directory]"
       exit 1;;
   esac
 done

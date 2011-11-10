@@ -1,6 +1,6 @@
 xquery version '1.0-ml';
 declare namespace test = 'http://xqueryhacker.com/xqtest/test';
-import module namespace utils = 'http://xqueryhacker.com/xqtest/utils' at '/src/lib/utils.xqy';
+import module namespace utils = 'http://xqueryhacker.com/xqtest/utils' at '/src/utils.xqy';
 
 
 declare function local:get-functions()
