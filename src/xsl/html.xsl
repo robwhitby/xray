@@ -1,5 +1,5 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		            xmlns:t="http://xqueryhacker.com/xqtest"
+		            xmlns:t="http://github.com/robwhitby/xqtest"
                 xmlns:xdmp="http://marklogic.com/xdmp"
                 version="2.0"
                 exclude-result-prefixes="t xdmp">

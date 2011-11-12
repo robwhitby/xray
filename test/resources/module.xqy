@@ -1,5 +1,5 @@
 xquery version '1.0-ml';
-module namespace test = 'http://xqueryhacker.com/xqtest/test';
+module namespace test = 'http://github.com/robwhitby/xqtest/test';
 
 declare function test:f1()
 {

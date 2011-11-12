@@ -1,9 +1,9 @@
 xquery version '1.0-ml';
 
-module namespace utils = 'http://xqueryhacker.com/xqtest/utils';
-declare namespace test = 'http://xqueryhacker.com/xqtest/test';
+module namespace utils = 'http://github.com/robwhitby/xqtest/utils';
+declare namespace test = 'http://github.com/robwhitby/xqtest/test';
 declare namespace s = 'http://www.w3.org/2009/xpath-functions/analyze-string';
-declare default element namespace 'http://xqueryhacker.com/xqtest';
+declare default element namespace 'http://github.com/robwhitby/xqtest';
 
 
 declare function utils:get-filelist($dir as xs:string) as xs:string*
@@ -63,7 +63,7 @@ as element()
 
 declare function utils:transform($el as element(), $format as xs:string) as item()
 {
-  if ($format eq 'text') then xdmp:set-response-content-type(fn:concat('text/plain')) else ()
+  if ($format eq 'text') then xdmp:set-response-content-type('text/plain') else ()
   ,
   if ($format = ('html', 'text'))
   then xdmp:xslt-invoke(fn:concat('xsl/', $format, '.xsl'), $el)

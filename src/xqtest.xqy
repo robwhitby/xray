@@ -1,9 +1,9 @@
 xquery version '1.0-ml';
 
-module namespace t = 'http://xqueryhacker.com/xqtest';
-declare namespace test = 'http://xqueryhacker.com/xqtest/test';
-import module namespace utils = 'http://xqueryhacker.com/xqtest/utils' at 'utils.xqy';
-declare default element namespace 'http://xqueryhacker.com/xqtest';
+module namespace t = 'http://github.com/robwhitby/xqtest';
+declare namespace test = 'http://github.com/robwhitby/xqtest/test';
+import module namespace utils = 'http://github.com/robwhitby/xqtest/utils' at 'utils.xqy';
+declare default element namespace 'http://github.com/robwhitby/xqtest';
 declare option xdmp:update 'true';
 
 declare function t:run-test($fn as xdmp:function) as element(test) {

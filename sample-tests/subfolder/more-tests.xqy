@@ -1,6 +1,6 @@
 xquery version '1.0-ml';
-module namespace test = 'http://xqueryhacker.com/xqtest/test';
-import module namespace assert = 'http://xqueryhacker.com/xqtest/assertions' at '/src/assertions.xqy';
+module namespace test = 'http://github.com/robwhitby/xqtest/test';
+import module namespace assert = 'http://github.com/robwhitby/xqtest/assertions' at '/src/assertions.xqy';
 
 declare function test:xml-nodes-equal() {
     assert:equal(<test foo="bar"/>, <test foo="bar"/>)
