@@ -4,11 +4,11 @@ module namespace t = 'http://xqueryhacker.com/xqtest';
 declare namespace test = 'http://xqueryhacker.com/xqtest/test';
 import module namespace utils = 'http://xqueryhacker.com/xqtest/utils' at 'utils.xqy';
 declare default element namespace 'http://xqueryhacker.com/xqtest';
-
+declare option xdmp:update 'true';
 
 declare function t:run-test($fn as xdmp:function) as element(test) {
   let $test :=
-    try { xdmp:apply($fn) }
+    try { t:apply($fn) }
     catch($ex) { element failed {t:error($ex)} }
   return element test {
     attribute name { utils:get-local-name($fn) },
@@ -24,29 +24,31 @@ as item()
   let $tests := 
     element tests {
       for $module in utils:get-modules($test-dir, fn:string($module-pattern))
+      let $fns := utils:get-functions($module, 'test')
       return
         element module {
           attribute path { utils:relative-path($module) },
-          for $fn in utils:get-functions($module, 'test')
+          t:apply($fns[utils:get-local-name(.) = 'setup']),
+          for $fn in $fns[fn:not(utils:get-local-name(.) = ('setup', 'teardown'))]
           where fn:matches(utils:get-local-name($fn), fn:string($test-pattern))
-          return t:run-test($fn)
+          return t:run-test($fn),
+          t:apply($fns[utils:get-local-name(.) = 'teardown'])  
         }
     }
   return
-    if ($format = ('text', 'html')) then utils:transform($tests, $format)
-    else $tests
+    utils:transform($tests, $format)
 };
 
 
-declare function t:run-tests($test-dir as xs:string) as element(tests)
+declare function t:apply($function as xdmp:function)
 {
-  t:run-tests($test-dir, (), (), ())
-};
-
-
-declare function t:run-tests() as element(tests)
-{
-  t:run-tests('tests')
+  xdmp:eval("
+    declare variable $fn as xdmp:function external; 
+    declare option xdmp:update 'true';
+    xdmp:apply($fn)",
+    (fn:QName("","fn"), $function),
+    <options xmlns="xdmp:eval"><isolation>different-transaction</isolation></options>
+  )
 };
 
 

@@ -9,7 +9,7 @@ declare default element namespace 'http://xqueryhacker.com/xqtest';
 declare function utils:get-filelist($dir as xs:string) as xs:string*
 {
   for $entry in xdmp:filesystem-directory($dir)/dir:entry
-  order by $entry/dir:pathname
+  order by $entry/dir:type descending, $entry/dir:filename ascending
   return
     if ($entry/dir:type = 'file') then $entry/dir:pathname/fn:string()
     else utils:get-filelist($entry/dir:pathname/fn:string())
@@ -63,6 +63,9 @@ as element()
 
 declare function utils:transform($el as element(), $format as xs:string) as item()
 {
-  if ($format eq 'text') then xdmp:set-response-content-type(fn:concat('text/plain')) else (),
-  xdmp:xslt-invoke(fn:concat('xsl/', $format, '.xsl'), $el)
+  if ($format eq 'text') then xdmp:set-response-content-type(fn:concat('text/plain')) else ()
+  ,
+  if ($format = ('html', 'text'))
+  then xdmp:xslt-invoke(fn:concat('xsl/', $format, '.xsl'), $el)
+  else $el
 };
