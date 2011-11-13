@@ -46,8 +46,8 @@
 
   <xsl:template name="css">
     <style type="text/css">
-      body { margin: 10px; }
-      h3, h4, pre { margin: 0; padding: 5px 10px; }
+      body { margin: 10px; font-family: "Gill Sans MT","Gill Sans",Arial,Sans-serif; }
+      h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
       h3 { background-color: #eee; }
       .module { border: 1px solid #ccc; margin: 10px 0; }
       .Failed { color: red; }

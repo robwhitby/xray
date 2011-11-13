@@ -22,11 +22,11 @@ declare function assert:not-equal($actual as item()*, $expected as item()*) as e
 declare function assert:empty($actual as item()*)
 {
   let $status := fn:empty($actual)
-  return utils:test-response('empty', $status, $actual, '()')
+  return utils:test-response('empty', $status, $actual, 'empty-sequence()')
 };
 
 
-declare function assert:exists($actual as item()*)
+declare function assert:not-empty($actual as item()*)
 {
   let $status := fn:not(fn:empty($actual))
   return utils:test-response('not-empty', $status, $actual, 'item()+')

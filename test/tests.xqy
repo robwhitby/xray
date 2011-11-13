@@ -1,22 +1,24 @@
 xquery version '1.0-ml';
 module namespace test = 'http://github.com/robwhitby/xqtest/test';
-import module namespace assert = 'http://github.com/robwhitby/xqtest/assertions' at '/src/assertions.xqy';
+import module namespace assert = 'http://github.com/robwhitby/xqtest/assertions' at '/XQTest/src/assertions.xqy';
 
+(: 
+  optional setup function evaluated first
+  add any test docs used by the tests in this module
+:)
 declare function test:setup()
 {
-  xdmp:document-insert('doc1.xml', <doc1>1</doc1>, (), 'test')
+  xdmp:document-insert('doc1.xml', <doc1>foo bar</doc1>, (), 'test')
 };
 
+(: optional teardown function evaluated after all tests :)
 declare function test:teardown()
 {
   xdmp:document-delete('doc1.xml')
 };
 
-declare function test:check-doc1-loaded() 
-{
-  assert:equal(fn:doc-available('doc1.xml'), fn:true())
-};
 
+(: all public functions with the test: prefix are evaluated by the test-runner :)
 declare function test:should-be-able-to-test-number-equality()
 {
   assert:equal(1, 1)
@@ -90,3 +92,27 @@ declare function test:should-be-able-to-call-private-functions()
   )
 };
 
+declare function
+  test:check-doc1-loaded() {
+  assert:not-empty(fn:doc('doc1.xml'))
+};
+
+declare function 
+test:check-doc1-is-searchable()
+{
+  let $results := cts:search(fn:collection('test'), 'foo')
+  return assert:equal($results/doc1/fn:string(), 'foo bar')
+};
+
+
+declare private function test:should-not-run-private-function()
+{
+  fn:error()
+};
+
+(:
+declare function test:should-not-attempt-to-run-commented-out-function() 
+{
+  fn:error()
+};
+:)

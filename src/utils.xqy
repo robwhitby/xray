@@ -23,7 +23,8 @@ declare function utils:get-functions($module-path as xs:string, $ns-prefix as xs
   let $module := try { fn:string(xdmp:filesystem-file($module-path)) } catch($e){}
   where $module
   return
-    let $without-comments := fn:string-join(fn:analyze-string($module, '\(:.*:\)', 's')/s:non-match, ' ')
+    let $without-comments := fn:string-join(fn:analyze-string($module, '\(:.*?:\)', 's')/s:non-match, ' ')
+    let $_ := xdmp:log($without-comments)
     return
       for $f in fn:analyze-string($without-comments, $regex)/s:match/s:group/fn:string()
       return xdmp:function(xs:QName($f), fn:replace($module-path, xdmp:modules-root(), '/'))
