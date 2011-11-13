@@ -6,7 +6,8 @@ import module namespace utils = 'http://github.com/robwhitby/xqtest/utils' at 'u
 declare default element namespace 'http://github.com/robwhitby/xqtest';
 declare option xdmp:update 'true';
 
-declare function t:run-test($fn as xdmp:function) as element(test) {
+declare function t:run-test($fn as xdmp:function) as element(test) 
+{
   let $test :=
     try { t:apply($fn) }
     catch($ex) { element failed {t:error($ex)} }
