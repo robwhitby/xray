@@ -4,7 +4,6 @@ module namespace t = 'http://github.com/robwhitby/xqtest';
 declare namespace test = 'http://github.com/robwhitby/xqtest/test';
 import module namespace utils = 'http://github.com/robwhitby/xqtest/utils' at 'utils.xqy';
 declare default element namespace 'http://github.com/robwhitby/xqtest';
-declare option xdmp:update 'true';
 
 declare function t:run-test($fn as xdmp:function) as element(test) 
 {
@@ -25,7 +24,7 @@ as item()
   let $tests := 
     element tests {
       for $module in utils:get-modules($test-dir, fn:string($module-pattern))
-      let $fns := utils:get-functions($module, 'test')
+      let $fns := utils:get-functions($module)
       return
         element module {
           attribute path { utils:relative-path($module) },

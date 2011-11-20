@@ -1,9 +1,9 @@
 xquery version '1.0-ml';
 
 module namespace utils = 'http://github.com/robwhitby/xqtest/utils';
+declare namespace t = 'http://github.com/robwhitby/xqtest';
 declare namespace test = 'http://github.com/robwhitby/xqtest/test';
-declare namespace s = 'http://www.w3.org/2009/xpath-functions/analyze-string';
-declare default element namespace 'http://github.com/robwhitby/xqtest';
+import module namespace parser = 'XQueryML10' at 'parsers/XQueryML10.xq';
 
 
 declare function utils:get-filelist($dir as xs:string) as xs:string*
@@ -16,17 +16,13 @@ declare function utils:get-filelist($dir as xs:string) as xs:string*
 };
 
 
-(: pretty naive but does the job for now :)
-declare function utils:get-functions($module-path as xs:string, $ns-prefix as xs:string?) as xdmp:function*
+declare function utils:get-functions($module-path as xs:string) as xdmp:function*
 {
-  let $regex := fn:concat('declare\s+function\s+(', $ns-prefix, '[^\(]+)\(')
-  let $module := try { fn:string(xdmp:filesystem-file($module-path)) } catch($e){}
-  where $module
-  return
-    let $without-comments := fn:string-join(fn:analyze-string($module, '\(:.*?:\)', 's')/s:non-match, ' ')
-    return
-      for $f in fn:analyze-string($without-comments, $regex)/s:match/s:group/fn:string()
-      return xdmp:function(xs:QName($f), fn:replace($module-path, xdmp:modules-root(), '/'))
+  let $parsed := utils:parse-xquery($module-path)
+  return 
+    for $fn in $parsed//FunctionDecl
+    where $fn[fn:not(TOKEN = 'private')]
+    return xdmp:function(xs:QName($fn/FunctionName/QName), fn:replace($module-path, xdmp:modules-root(), '/'))
 };
 
 
@@ -53,10 +49,10 @@ declare function utils:get-local-name($fn as xdmp:function) as xs:string
 declare function utils:test-response($assertion as xs:string, $status as xs:boolean, $actual as item()?, $expected as item()?)
 as element()
 {
-  element { if ($status) then 'passed' else 'failed' } {
+  element { if ($status) then 't:passed' else 't:failed' } {
     attribute assertion { $assertion },
-    element actual { ($actual, '()')[1] },
-    element expected { $expected }
+    element t:actual { ($actual, '()')[1] },
+    element t:expected { $expected }
   }
 };
 
@@ -69,3 +65,11 @@ declare function utils:transform($el as element(), $format as xs:string) as item
   then xdmp:xslt-invoke(fn:concat('xsl/', $format, '.xsl'), $el)
   else $el
 };
+
+
+declare function utils:parse-xquery($module-path as xs:string) as element(XQuery)
+{
+  let $source := fn:string(xdmp:filesystem-file($module-path))
+  return parser:parse-XQuery($source)
+};
+
