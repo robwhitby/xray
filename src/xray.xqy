@@ -5,18 +5,6 @@ declare namespace test = 'http://github.com/robwhitby/xray/test';
 import module namespace utils = 'http://github.com/robwhitby/xray/utils' at 'utils.xqy';
 declare default element namespace 'http://github.com/robwhitby/xray';
 
-declare function xray:run-test($fn as xdmp:function) as element(test) 
-{
-  let $test :=
-    try { xray:apply($fn) }
-    catch($ex) { element failed {xray:error($ex)} }
-  return element test {
-    attribute name { utils:get-local-name($fn) },
-    attribute result { if ($test//descendant-or-self::failed) then 'Failed' else 'Passed' },
-    $test
-  }
-};
-
 
 declare function xray:run-tests($test-dir as xs:string, $module-pattern as xs:string?, $test-pattern as xs:string?, $format as xs:string?)
 as item()
@@ -37,6 +25,31 @@ as item()
     }
   return
     utils:transform($tests, $format)
+};
+
+
+declare function xray:run-test($fn as xdmp:function) as element(test) 
+{
+  let $test :=
+    try { xray:apply($fn) }
+    catch($ex) { element failed {xray:error($ex)} }
+  return element test {
+    attribute name { utils:get-local-name($fn) },
+    attribute result { if ($test//descendant-or-self::assert[@result='failed']) then 'failed' else 'passed' },
+    $test
+  }
+};
+
+
+declare function xray:test-response($assertion as xs:string, $passed as xs:boolean, $actual as item()?, $expected as item()?)
+as element(assert)
+{
+  element assert {
+    attribute test { $assertion },
+    attribute result { if ($passed) then 'passed' else 'failed' },
+    element xray:actual { ($actual, '()')[1] },
+    element xray:expected { $expected }
+  }
 };
 
 

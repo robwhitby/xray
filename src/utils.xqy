@@ -1,7 +1,7 @@
 xquery version '1.0-ml';
 
 module namespace utils = 'http://github.com/robwhitby/xray/utils';
-declare namespace x = 'http://github.com/robwhitby/xray';
+declare namespace xray = 'http://github.com/robwhitby/xray';
 declare namespace test = 'http://github.com/robwhitby/xray/test';
 import module namespace parser = 'XQueryML10' at 'parsers/XQueryML10.xq';
 
@@ -43,17 +43,6 @@ declare function utils:relative-path($path as xs:string) as xs:string
 declare function utils:get-local-name($fn as xdmp:function) as xs:string
 {
   fn:string(fn:local-name-from-QName(xdmp:function-name($fn)))
-};
-
-
-declare function utils:test-response($assertion as xs:string, $status as xs:boolean, $actual as item()?, $expected as item()?)
-as element()
-{
-  element { if ($status) then 'x:passed' else 'x:failed' } {
-    attribute assertion { $assertion },
-    element x:actual { ($actual, '()')[1] },
-    element x:expected { $expected }
-  }
 };
 
 

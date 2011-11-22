@@ -1,12 +1,12 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		            xmlns:x="http://github.com/robwhitby/xray"
+		            xmlns:xray="http://github.com/robwhitby/xray"
                 xmlns:xdmp="http://marklogic.com/xdmp"
                 version="2.0"
-                exclude-result-prefixes="x xdmp">
+                exclude-result-prefixes="xray xdmp">
 
   <xsl:output method="html" omit-xml-declaration="yes" indent="yes"/>
 
-  <xsl:template match="x:tests">
+  <xsl:template match="xray:tests">
     <xsl:text>&lt;!DOCTYPE html&gt;</xsl:text>
     <html>
       <head>
@@ -20,27 +20,29 @@
     </html>
   </xsl:template>
 
-  <xsl:template match="x:module[x:test]">
+  <xsl:template match="xray:module[xray:test]">
     <div class="module">
       <h3>Module <xsl:value-of select="@path"/></h3>
       <xsl:apply-templates/>
     </div>
   </xsl:template>
 
-  <xsl:template match="x:test">
+  <xsl:template match="xray:test">
     <h4 class="{@result}"><xsl:value-of select="@name, '--', upper-case(@result)"/></h4>
-    <xsl:apply-templates select="x:failed"/>
+    <xsl:apply-templates select="xray:assert"/>
   </xsl:template>
 
-  <xsl:template match="x:failed">
-    <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
+  <xsl:template match="xray:assert">
+    <xsl:if test="@result = 'failed'">
+      <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
+    </xsl:if>
   </xsl:template>
     
   <xsl:template name="finished">
     <p>
-      <xsl:value-of select="'Finished: Total', count(x:module/x:test)" />
-      <xsl:value-of select="', Failed', count(x:module/x:test[@result='Failed'])" />
-      <xsl:value-of select="', Passed', count(x:module/x:test[@result='Passed'])" />
+      <xsl:value-of select="'Finished: Total', count(xray:module/xray:test)" />
+      <xsl:value-of select="', Failed', count(xray:module/xray:test[@result='failed'])" />
+      <xsl:value-of select="', Passed', count(xray:module/xray:test[@result='passed'])" />
     </p>
   </xsl:template>
 
@@ -50,8 +52,8 @@
       h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
       h3 { background-color: #eee; }
       .module { border: 1px solid #ccc; margin: 10px 0; }
-      .Failed { color: red; }
-      .Passed { color: green; }
+      .failed { color: red; }
+      .passed { color: green; }
     </style>
   </xsl:template>
 
