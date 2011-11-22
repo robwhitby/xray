@@ -1,5 +1,5 @@
 #!/bin/bash
-BASEURL=http://localhost:8889/XQTest/test-runner.xqy
+BASEURL=http://localhost:8889/xray/test-runner.xqy
 START=$(date +%s)
 DIR=
 MODULES=

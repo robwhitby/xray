@@ -1,12 +1,12 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		            xmlns:t="http://github.com/robwhitby/xqtest"
+		            xmlns:x="http://github.com/robwhitby/xray"
                 xmlns:xdmp="http://marklogic.com/xdmp"
                 version="2.0"
-                exclude-result-prefixes="t xdmp">
+                exclude-result-prefixes="x xdmp">
 
   <xsl:output method="html" omit-xml-declaration="yes" indent="yes"/>
 
-  <xsl:template match="t:tests">
+  <xsl:template match="x:tests">
     <xsl:text>&lt;!DOCTYPE html&gt;</xsl:text>
     <html>
       <head>
@@ -20,27 +20,27 @@
     </html>
   </xsl:template>
 
-  <xsl:template match="t:module[t:test]">
+  <xsl:template match="x:module[x:test]">
     <div class="module">
       <h3>Module <xsl:value-of select="@path"/></h3>
       <xsl:apply-templates/>
     </div>
   </xsl:template>
 
-  <xsl:template match="t:test">
+  <xsl:template match="x:test">
     <h4 class="{@result}"><xsl:value-of select="@name, '--', upper-case(@result)"/></h4>
-    <xsl:apply-templates select="t:failed"/>
+    <xsl:apply-templates select="x:failed"/>
   </xsl:template>
 
-  <xsl:template match="t:failed">
+  <xsl:template match="x:failed">
     <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
   </xsl:template>
     
   <xsl:template name="finished">
     <p>
-      <xsl:value-of select="'Finished: Total', count(t:module/t:test)" />
-      <xsl:value-of select="', Failed', count(t:module/t:test[@result='Failed'])" />
-      <xsl:value-of select="', Passed', count(t:module/t:test[@result='Passed'])" />
+      <xsl:value-of select="'Finished: Total', count(x:module/x:test)" />
+      <xsl:value-of select="', Failed', count(x:module/x:test[@result='Failed'])" />
+      <xsl:value-of select="', Passed', count(x:module/x:test[@result='Passed'])" />
     </p>
   </xsl:template>
 

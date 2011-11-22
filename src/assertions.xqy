@@ -1,8 +1,8 @@
 xquery version '1.0-ml';
 
-module namespace assert='http://github.com/robwhitby/xqtest/assertions';
-import module namespace utils = 'http://github.com/robwhitby/xqtest/utils' at 'utils.xqy';
-declare default element namespace 'http://github.com/robwhitby/xqtest';
+module namespace assert='http://github.com/robwhitby/xray/assertions';
+import module namespace utils = 'http://github.com/robwhitby/xray/utils' at 'utils.xqy';
+declare default element namespace 'http://github.com/robwhitby/xray';
 
 
 declare function assert:equal($actual as item()*, $expected as item()*) as element()

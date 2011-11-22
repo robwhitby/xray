@@ -1,15 +1,15 @@
 xquery version '1.0-ml';
 
-module namespace t = 'http://github.com/robwhitby/xqtest';
-declare namespace test = 'http://github.com/robwhitby/xqtest/test';
-import module namespace utils = 'http://github.com/robwhitby/xqtest/utils' at 'utils.xqy';
-declare default element namespace 'http://github.com/robwhitby/xqtest';
+module namespace xray = 'http://github.com/robwhitby/xray';
+declare namespace test = 'http://github.com/robwhitby/xray/test';
+import module namespace utils = 'http://github.com/robwhitby/xray/utils' at 'utils.xqy';
+declare default element namespace 'http://github.com/robwhitby/xray';
 
-declare function t:run-test($fn as xdmp:function) as element(test) 
+declare function xray:run-test($fn as xdmp:function) as element(test) 
 {
   let $test :=
-    try { t:apply($fn) }
-    catch($ex) { element failed {t:error($ex)} }
+    try { xray:apply($fn) }
+    catch($ex) { element failed {xray:error($ex)} }
   return element test {
     attribute name { utils:get-local-name($fn) },
     attribute result { if ($test//descendant-or-self::failed) then 'Failed' else 'Passed' },
@@ -18,7 +18,7 @@ declare function t:run-test($fn as xdmp:function) as element(test)
 };
 
 
-declare function t:run-tests($test-dir as xs:string, $module-pattern as xs:string?, $test-pattern as xs:string?, $format as xs:string?)
+declare function xray:run-tests($test-dir as xs:string, $module-pattern as xs:string?, $test-pattern as xs:string?, $format as xs:string?)
 as item()
 {
   let $tests := 
@@ -28,11 +28,11 @@ as item()
       return
         element module {
           attribute path { utils:relative-path($module) },
-          t:apply($fns[utils:get-local-name(.) = 'setup']),
+          xray:apply($fns[utils:get-local-name(.) = 'setup']),
           for $fn in $fns[fn:not(utils:get-local-name(.) = ('setup', 'teardown'))]
           where fn:matches(utils:get-local-name($fn), fn:string($test-pattern))
-          return t:run-test($fn),
-          t:apply($fns[utils:get-local-name(.) = 'teardown'])  
+          return xray:run-test($fn),
+          xray:apply($fns[utils:get-local-name(.) = 'teardown'])  
         }
     }
   return
@@ -40,7 +40,7 @@ as item()
 };
 
 
-declare function t:apply($function as xdmp:function)
+declare function xray:apply($function as xdmp:function)
 {
   xdmp:eval("
     declare variable $fn as xdmp:function external; 
@@ -52,7 +52,7 @@ declare function t:apply($function as xdmp:function)
 };
 
 
-declare function t:error($ex as element(error:error)) as element(error:error)
+declare function xray:error($ex as element(error:error)) as element(error:error)
 {
   $ex
 };

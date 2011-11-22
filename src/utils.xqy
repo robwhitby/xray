@@ -1,8 +1,8 @@
 xquery version '1.0-ml';
 
-module namespace utils = 'http://github.com/robwhitby/xqtest/utils';
-declare namespace t = 'http://github.com/robwhitby/xqtest';
-declare namespace test = 'http://github.com/robwhitby/xqtest/test';
+module namespace utils = 'http://github.com/robwhitby/xray/utils';
+declare namespace x = 'http://github.com/robwhitby/xray';
+declare namespace test = 'http://github.com/robwhitby/xray/test';
 import module namespace parser = 'XQueryML10' at 'parsers/XQueryML10.xq';
 
 
@@ -49,10 +49,10 @@ declare function utils:get-local-name($fn as xdmp:function) as xs:string
 declare function utils:test-response($assertion as xs:string, $status as xs:boolean, $actual as item()?, $expected as item()?)
 as element()
 {
-  element { if ($status) then 't:passed' else 't:failed' } {
+  element { if ($status) then 'x:passed' else 'x:failed' } {
     attribute assertion { $assertion },
-    element t:actual { ($actual, '()')[1] },
-    element t:expected { $expected }
+    element x:actual { ($actual, '()')[1] },
+    element x:expected { $expected }
   }
 };
 
@@ -62,7 +62,7 @@ declare function utils:transform($el as element(), $format as xs:string) as item
   if ($format eq 'text') then xdmp:set-response-content-type('text/plain') else ()
   ,
   if ($format = ('html', 'text'))
-  then xdmp:xslt-invoke(fn:concat('xsl/', $format, '.xsl'), $el)
+  then xdmp:xslt-invoke(fn:concat('output/', $format, '.xsl'), $el)
   else $el
 };
 
