@@ -1,9 +1,9 @@
 #!/bin/bash
-BASEURL=http://localhost:8889/xray/test-runner.xqy
+BASEURL=http://localhost:8889/xray/index.xqy
 START=$(date +%s)
 DIR=
 MODULES=
-TESTS=
+TESTS=test
 CRED=$(tput setaf 1)
 CGREEN=$(tput setaf 2) 
 CDEFAULT=$(tput sgr0)       
