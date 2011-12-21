@@ -39,9 +39,9 @@ declare function test:string-equality-example()
 ```
 
 ## Invoking Tests
-* browser
-* test-runner.sh
-* invoking from xquery 
+* browser - `http://server:port/xray/`
+* test-runner.sh - sample shell script, edit default vars (tested on OSX only).
+* invoking from xquery - import `src/xray.xqy` and call `xray:run-tests()`
 
 
 ## Parameters
@@ -65,7 +65,7 @@ See `test/tests.xqy` for an example.
 
 
 ## Acknowledgements
-Thanks to [Jon Snelson](http://github.com/jpcs) for the XQuery parser (part of https://github.com/xquery/xquerydoc). Without it I would still be hacking around with regexes.
+Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser (part of https://github.com/xquery/xquerydoc). Without it I would still be hacking around with regexes.
 
 
 
