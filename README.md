@@ -51,7 +51,7 @@ declare function test:string-equality-example()
 
 
 ## Assertions
-See [src/assertions.xqy](src/assertions.xqy).
+See `src/assertions.xqy` for the current assertions.
 
 
 ## Ignoring Tests 
@@ -61,7 +61,7 @@ Not implemented yet. Workaround - add `private` modifier to function.
 ## Setup and teardown functions
 `test:setup()` and `test:teardown()` are reserved function signatures. If defined, `test:setup()` is invoked before any tests in an isolated transaction, so any database updates are visible to the tests. `test:teardown()` is executed after all tests in that module have finished.
 
-See [test/tests.xqy](test/tests.xqy) for an example.
+See `test/tests.xqy` for an example.
 
 
 ## Acknowledgements
