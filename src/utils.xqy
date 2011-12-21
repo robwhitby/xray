@@ -5,7 +5,9 @@ declare namespace xray = "http://github.com/robwhitby/xray";
 declare namespace test = "http://github.com/robwhitby/xray/test";
 import module namespace parser = "XQueryML10" at "parsers/XQueryML10.xq";
 
-
+declare private variable $test-ns-uri := fn:namespace-uri-for-prefix("test", <test:x/>);
+  
+  
 declare function utils:get-filelist($dir as xs:string) as xs:string*
 {
   for $entry in xdmp:filesystem-directory($dir)/dir:entry
@@ -29,7 +31,7 @@ declare function utils:get-functions($module-path as xs:string) as xdmp:function
     let $qname := xs:QName($fn/FunctionName/QName)
     let $qname := 
       if (fn:namespace-uri-from-QName($qname) eq "") 
-      then fn:QName($parsed//ModuleDecl//StringLiteral/fn:replace(., "[&quot;']", ""), fn:local-name-from-QName($qname))
+      then fn:QName($test-ns-uri, fn:local-name-from-QName($qname))
       else $qname
     where $fn[fn:not(TOKEN = "private")]
     return xdmp:function($qname, fn:replace($module-path, xdmp:modules-root(), "/"))
@@ -83,7 +85,11 @@ declare function utils:transform(
 declare function utils:parse-xquery($module-path as xs:string) as element(XQuery)?
 {
   let $source := fn:string(xdmp:filesystem-file($module-path))
-  where fn:contains($source, "http://github.com/robwhitby/xray/test")
-  return parser:parse-XQuery($source)
+  where fn:contains($source, $test-ns-uri) (: preliminary check to speed things up a bit :)
+  return 
+    let $parsed := parser:parse-XQuery($source)
+    where fn:contains($parsed//ModuleDecl//StringLiteral, $test-ns-uri)
+    return $parsed
+
 };
 
