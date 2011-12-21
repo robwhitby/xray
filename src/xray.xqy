@@ -1,9 +1,9 @@
-xquery version '1.0-ml';
+xquery version "1.0-ml";
 
-module namespace xray = 'http://github.com/robwhitby/xray';
-declare namespace test = 'http://github.com/robwhitby/xray/test';
-import module namespace utils = 'http://github.com/robwhitby/xray/utils' at 'utils.xqy';
-declare default element namespace 'http://github.com/robwhitby/xray';
+module namespace xray = "http://github.com/robwhitby/xray";
+declare namespace test = "http://github.com/robwhitby/xray/test";
+import module namespace utils = "http://github.com/robwhitby/xray/utils" at "utils.xqy";
+declare default element namespace "http://github.com/robwhitby/xray";
 
 
 declare function xray:run-tests($test-dir as xs:string, $module-pattern as xs:string?, $test-pattern as xs:string?, $format as xs:string?)
@@ -16,11 +16,11 @@ declare function xray:run-tests($test-dir as xs:string, $module-pattern as xs:st
       return
         element module {
           attribute path { utils:relative-path($module) },
-          xray:apply($fns[utils:get-local-name(.) = 'setup']),
-          for $fn in $fns[fn:not(utils:get-local-name(.) = ('setup', 'teardown'))]
+          xray:apply($fns[utils:get-local-name(.) = "setup"]),
+          for $fn in $fns[fn:not(utils:get-local-name(.) = ("setup", "teardown"))]
           where fn:matches(utils:get-local-name($fn), fn:string($test-pattern))
           return xray:run-test($fn),
-          xray:apply($fns[utils:get-local-name(.) = 'teardown'])  
+          xray:apply($fns[utils:get-local-name(.) = "teardown"])  
         }
     }
   return
@@ -35,7 +35,7 @@ declare function xray:run-test($fn as xdmp:function) as element(test)
     catch($ex) { element failed {xray:error($ex)} }
   return element test {
     attribute name { utils:get-local-name($fn) },
-    attribute result { if ($test//descendant-or-self::assert[@result='failed']) then 'failed' else 'passed' },
+    attribute result { if ($test//descendant-or-self::assert[@result="failed"]) then "failed" else "passed" },
     $test
   }
 };
@@ -46,8 +46,8 @@ as element(assert)
 {
   element assert {
     attribute test { $assertion },
-    attribute result { if ($passed) then 'passed' else 'failed' },
-    element xray:actual { ($actual, '()')[1] },
+    attribute result { if ($passed) then "passed" else "failed" },
+    element xray:actual { ($actual, "()")[1] },
     element xray:expected { $expected }
   }
 };

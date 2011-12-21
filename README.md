@@ -56,7 +56,7 @@ declare function tests-can-contain-multiple-asserts()
 
 
 ## Parameters
-`dir` - test directory path relative from the app server modules root. Optional, defaults to 'test'.
+`dir` - test directory path relative from the app server modules root. Optional, defaults to "test".
 
 `modules` - regex match on module name. Optional, default to match all.
 

@@ -1,9 +1,9 @@
-xquery version '1.0-ml';
+xquery version "1.0-ml";
 
-module namespace utils = 'http://github.com/robwhitby/xray/utils';
-declare namespace xray = 'http://github.com/robwhitby/xray';
-declare namespace test = 'http://github.com/robwhitby/xray/test';
-import module namespace parser = 'XQueryML10' at 'parsers/XQueryML10.xq';
+module namespace utils = "http://github.com/robwhitby/xray/utils";
+declare namespace xray = "http://github.com/robwhitby/xray";
+declare namespace test = "http://github.com/robwhitby/xray/test";
+import module namespace parser = "XQueryML10" at "parsers/XQueryML10.xq";
 
 
 declare function utils:get-filelist($dir as xs:string) as xs:string*
@@ -11,9 +11,9 @@ declare function utils:get-filelist($dir as xs:string) as xs:string*
   for $entry in xdmp:filesystem-directory($dir)/dir:entry
   order by $entry/dir:type descending, $entry/dir:filename ascending
   return
-    if ($entry/dir:type = 'file')
+    if ($entry/dir:type = "file")
     then 
-      if (fn:matches($entry/dir:pathname, '\.xqy?$')) 
+      if (fn:matches($entry/dir:pathname, "\.xqy?$")) 
       then $entry/dir:pathname/fn:string()
       else ()
     else utils:get-filelist($entry/dir:pathname/fn:string())
@@ -30,14 +30,14 @@ declare function utils:get-functions($module-path as xs:string) as xdmp:function
       if (fn:namespace-uri-from-QName($qname) eq "") 
       then fn:QName($parsed//ModuleDecl//StringLiteral/fn:replace(., "[&quot;']", ""), fn:local-name-from-QName($qname))
       else $qname
-    where $fn[fn:not(TOKEN = 'private')]
-    return xdmp:function($qname, fn:replace($module-path, xdmp:modules-root(), '/'))
+    where $fn[fn:not(TOKEN = "private")]
+    return xdmp:function($qname, fn:replace($module-path, xdmp:modules-root(), "/"))
 };
 
 
 declare function utils:get-modules($test-dir as xs:string, $pattern as xs:string?) as xs:string*
 {
-  let $fs-dir := fn:concat(xdmp:modules-root(), fn:replace($test-dir, '^/+', ''))
+  let $fs-dir := fn:concat(xdmp:modules-root(), fn:replace($test-dir, "^/+", ""))
   where xdmp:filesystem-file-exists($fs-dir)
   return
     for $filepath in utils:get-filelist($fs-dir)
@@ -48,7 +48,7 @@ declare function utils:get-modules($test-dir as xs:string, $pattern as xs:string
 
 declare function utils:relative-path($path as xs:string) as xs:string
 {
-  fn:replace($path, xdmp:modules-root(), '/')
+  fn:replace($path, xdmp:modules-root(), "/")
 };
 
 
@@ -66,15 +66,15 @@ declare function utils:transform(
   $format as xs:string
 ) as document-node()
 {
-  if ($format eq 'text') then xdmp:set-response-content-type('text/plain') else ()
+  if ($format eq "text") then xdmp:set-response-content-type("text/plain") else ()
   ,
-  if ($format = ('html', 'text'))
+  if ($format = ("html", "text"))
   then 
     let $params := map:map()
-    let $_ := map:put($params, 'test-dir', $test-dir)
-    let $_ := map:put($params, 'module-pattern', $module-pattern)
-    let $_ := map:put($params, 'test-pattern', $test-pattern)
-    return xdmp:xslt-invoke(fn:concat('output/', $format, '.xsl'), $el, $params)
+    let $_ := map:put($params, "test-dir", $test-dir)
+    let $_ := map:put($params, "module-pattern", $module-pattern)
+    let $_ := map:put($params, "test-pattern", $test-pattern)
+    return xdmp:xslt-invoke(fn:concat("output/", $format, ".xsl"), $el, $params)
   else document { $el }
 };
 
