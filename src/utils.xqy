@@ -13,7 +13,7 @@ declare function utils:get-filelist($dir as xs:string) as xs:string*
   return
     if ($entry/dir:type = 'file')
     then 
-      if (fn:matches($entry/dir:pathname, '.xqy?$')) 
+      if (fn:matches($entry/dir:pathname, '\.xqy?$')) 
       then $entry/dir:pathname/fn:string()
       else ()
     else utils:get-filelist($entry/dir:pathname/fn:string())
@@ -25,8 +25,13 @@ declare function utils:get-functions($module-path as xs:string) as xdmp:function
   let $parsed := utils:parse-xquery($module-path)
   return 
     for $fn in $parsed//FunctionDecl
+    let $qname := xs:QName($fn/FunctionName/QName)
+    let $qname := 
+      if (fn:namespace-uri-from-QName($qname) eq "") 
+      then fn:QName($parsed//ModuleDecl//StringLiteral/fn:replace(., "[&quot;']", ""), fn:local-name-from-QName($qname))
+      else $qname
     where $fn[fn:not(TOKEN = 'private')]
-    return xdmp:function(xs:QName($fn/FunctionName/QName), fn:replace($module-path, xdmp:modules-root(), '/'))
+    return xdmp:function($qname, fn:replace($module-path, xdmp:modules-root(), '/'))
 };
 
 

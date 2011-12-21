@@ -1,1 +1,1 @@
-./test-runner.sh -u http://localhost:8889/xray/test-runner.xqy -d xray/test $*
+./test-runner.sh -u http://localhost:8889/xray/index.xqy -d xray/test $*

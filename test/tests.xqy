@@ -6,42 +6,54 @@ import module namespace assert = 'http://github.com/robwhitby/xray/assertions' a
   optional setup function evaluated first
   add any test docs used by the tests in this module
 :)
-declare function test:setup()
+declare function setup()
 {
   xdmp:document-insert('doc1.xml', <doc1>foo bar</doc1>, (), 'test')
 };
 
 (: optional teardown function evaluated after all tests :)
-declare function test:teardown()
+declare function teardown()
 {
   xdmp:document-delete('doc1.xml')
 };
 
 
-(: all public functions with the test: prefix are evaluated by the test-runner :)
-declare function test:should-be-able-to-test-number-equality()
+declare function tests-can-contain-multiple-asserts()
+{
+  let $foo := "foo"
+  let $bar := "bar"
+  return (
+    assert:not-empty($foo),
+    assert:equal($foo, "foo"),
+    assert:not-equal($foo, $bar)
+  )
+};
+
+
+(: all public functions are evaluated by the test-runner :)
+declare function should-be-able-to-test-number-equality()
 {
   assert:equal(1, 1)
 };
 
-declare function test:should-be-able-to-test-string-equality()
+declare function should-be-able-to-test-string-equality()
 {
   assert:equal('foo', 'not foo so should fail')
 };
 
-declare function test:should-be-able-to-return-multiple-asserts()
+declare function should-be-able-to-return-multiple-asserts()
 {
   assert:equal(0.5, 0.5),
   assert:equal('bar ', 'bar ')
 };
 
-declare function test:should-be-able-to-test-string-inequality()
+declare function should-be-able-to-test-string-inequality()
 {
   assert:not-equal('foo', 'bar'),
   assert:not-equal('foo', 'Foo')
 };
 
-declare function test:should-be-able-to-test-xml-equality()
+declare function should-be-able-to-test-xml-equality()
 {
   assert:equal(
     <test><p>para 1</p><p>para 2</p></test>,
@@ -49,7 +61,7 @@ declare function test:should-be-able-to-test-xml-equality()
   )
 };
 
-declare function test:should-ignore-attribute-order-in-xml-equality()
+declare function should-ignore-attribute-order-in-xml-equality()
 {
   assert:equal(
     <test foo="1" bar="2"/>,
@@ -57,7 +69,7 @@ declare function test:should-ignore-attribute-order-in-xml-equality()
   )
 };
 
-declare function test:should-be-able-to-test-xml-inequality()
+declare function should-be-able-to-test-xml-inequality()
 {
   assert:not-equal(
     <test><p>para 1</p><p>para 2</p></test>,
@@ -65,24 +77,24 @@ declare function test:should-be-able-to-test-xml-inequality()
   )
 };
 
-declare function test:should-be-able-to-test-xpath()
+declare function should-be-able-to-test-xpath()
 {
   let $xml := <test><p>para 1</p><p>para 2</p></test>
   return assert:equal($xml/p[2], <p>para 2</p>)
 };
 
-declare function test:should-be-able-to-test-empty-xpath()
+declare function should-be-able-to-test-empty-xpath()
 {
   let $xml := <test><p>para 1</p><p>para 2</p></test>
   return assert:empty($xml/p[3])
 };
 
-declare private function test:get-xml()
+declare private function get-xml()
 {
   <test><p>para 1</p><p>para 2</p></test>
 };
 
-declare function test:should-be-able-to-call-private-functions()
+declare function should-be-able-to-call-private-functions()
 {
   let $xml := test:get-xml()
   return (
@@ -93,7 +105,7 @@ declare function test:should-be-able-to-call-private-functions()
 };
 
 declare function
-  test:check-doc1-loaded() {
+  check-doc1-loaded() {
   assert:not-empty(fn:doc('doc1.xml'))
 };
 
