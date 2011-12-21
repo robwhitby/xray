@@ -4,10 +4,10 @@ Heads up: This project is very much a work in progress.
 
 
 ## Introduction
-**xray** is a framework for testing XQuery on MarkLogic Server. It differs from other XQuery test frameworks in that tests are written as standard XQuery functions.
+**xray** is a framework for testing XQuery on MarkLogic Server. Test cases are written as standard XQuery functions like this:  
 
 ```xquery
-declare function test:string-equality-example()
+declare function string-equality-example()
 {
   let $foo := "foo"
   return assert:equal($foo, "foo")
@@ -22,44 +22,58 @@ declare function test:string-equality-example()
 
 
 ## Writing Tests
-Tests are written as library modules in the xray test namespace, importing the xray assertions module:
+Tests are grouped into library modules in the xray test namespace, importing the xray assertions module:
 
 ```xquery
 xquery version '1.0-ml';
 module namespace test = 'http://github.com/robwhitby/xray/test';
 import module namespace assert = 'http://github.com/robwhitby/xray/assertions' at '/xray/src/assertions.xqy';
 
-declare function test:string-equality-example()
+declare function string-equality-example()
 {
   let $foo := "foo"
   return assert:equal($foo, "foo")
+};
+
+declare function tests-can-contain-multiple-asserts()
+{
+  let $foo := "foo"
+  let $bar := "bar"
+  return (
+    assert:not-empty($foo),
+    assert:equal($foo, "foo"),
+    assert:not-equal($foo, $bar)
+  )
 };
 
 (: more tests :)
 ```
 
 ## Invoking Tests
-* browser - `http://server:port/xray/`
-* test-runner.sh - sample shell script, edit default vars (tested on OSX only).
-* invoking from xquery - import `src/xray.xqy` and call `xray:run-tests()`
+**xray** will find and execute all the test cases defined in a directory (and sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
+
+* in browser - `http://server:port/xray/`
+* command line - test-runner.sh is a sample shell script, edit default vars (tested on OSX only).
+* invoke from xquery - import `src/xray.xqy` and call `xray:run-tests()`
 
 
 ## Parameters
-* `dir` - test directory path relative from the app server modules root. Defauts to 'test'.
-* `modules` - regex match on module name. Optional.
-* `tests` - regex match on test name. Optional.
-
+`dir` - test directory path relative from the app server modules root. Optional, defaults to 'test'.
+`modules` - regex match on module name. Optional, default to match all.
+`tests` - regex match on test name. Optional, defaults to match all.
+`format` - set output format to html, xml or text. Optional, defaults to html.
 
 ## Assertions
 See `src/assertions.xqy` for the current assertions.
 
 
 ## Ignoring Tests 
-Not implemented yet. Workaround - add `private` modifier to function.
+Not implemented yet. 
+Workaround - add `private` modifier to function.
 
 
 ## Setup and teardown functions
-`test:setup()` and `test:teardown()` are reserved function signatures. If defined, `test:setup()` is invoked before any tests in an isolated transaction, so any database updates are visible to the tests. `test:teardown()` is executed after all tests in that module have finished.
+`setup()` and `teardown()` are special function signatures. If defined, `setup()` is invoked before any tests in a seperate transaction, so any database updates are visible to the tests. `teardown()` is executed after all tests in that module have finished.
 
 See `test/tests.xqy` for an example.
 
