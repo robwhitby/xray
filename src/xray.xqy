@@ -7,11 +7,11 @@ declare default element namespace 'http://github.com/robwhitby/xray';
 
 
 declare function xray:run-tests($test-dir as xs:string, $module-pattern as xs:string?, $test-pattern as xs:string?, $format as xs:string?)
-as item()
 {
+  let $modules := utils:get-modules($test-dir, fn:string($module-pattern))
   let $tests := 
     element tests {
-      for $module in utils:get-modules($test-dir, fn:string($module-pattern))
+      for $module in $modules
       let $fns := utils:get-functions($module)
       return
         element module {
@@ -24,7 +24,7 @@ as item()
         }
     }
   return
-    utils:transform($tests, $format)
+    utils:transform($tests, $test-dir, $module-pattern, $test-pattern, $format)
 };
 
 
