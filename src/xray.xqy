@@ -32,10 +32,12 @@ declare function xray:run-test($fn as xdmp:function) as element(test)
 {
   let $test :=
     try { xray:apply($fn) }
-    catch($ex) { element failed {xray:error($ex)} }
+    catch($ex) { element exception { xray:error($ex)} }
   return element test {
     attribute name { utils:get-local-name($fn) },
-    attribute result { if ($test//descendant-or-self::assert[@result="failed"]) then "failed" else "passed" },
+    attribute result { 
+      if ($test/error:error or $test//descendant-or-self::assert[@result="failed"]) then "failed" else "passed"
+    },
     $test
   }
 };

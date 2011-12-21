@@ -119,12 +119,12 @@ test:check-doc1-is-searchable()
 
 declare private function test:should-not-run-private-function()
 {
-  fn:error()
+  fn:error((), "this test is private!")
 };
 
 (:
 declare function test:should-not-attempt-to-run-commented-out-function() 
 {
-  fn:error()
+  fn:error((), "this test is commented out!")
 };
 :)

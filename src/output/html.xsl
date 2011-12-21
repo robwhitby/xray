@@ -35,10 +35,10 @@
 
   <xsl:template match="xray:test">
     <h4 class="{@result}"><xsl:value-of select="@name, '--', upper-case(@result)"/></h4>
-    <xsl:apply-templates select="xray:assert"/>
+    <xsl:call-template name="result"/>
   </xsl:template>
 
-  <xsl:template match="xray:assert">
+  <xsl:template name="result">
     <xsl:if test="@result = 'failed'">
       <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
     </xsl:if>

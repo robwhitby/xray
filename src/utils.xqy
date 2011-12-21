@@ -23,6 +23,7 @@ declare function utils:get-filelist($dir as xs:string) as xs:string*
 declare function utils:get-functions($module-path as xs:string) as xdmp:function*
 {
   let $parsed := utils:parse-xquery($module-path)
+  where $parsed
   return 
     for $fn in $parsed//FunctionDecl
     let $qname := xs:QName($fn/FunctionName/QName)
@@ -79,9 +80,10 @@ declare function utils:transform(
 };
 
 
-declare function utils:parse-xquery($module-path as xs:string) as element(XQuery)
+declare function utils:parse-xquery($module-path as xs:string) as element(XQuery)?
 {
   let $source := fn:string(xdmp:filesystem-file($module-path))
+  where fn:contains($source, "http://github.com/robwhitby/xray/test")
   return parser:parse-XQuery($source)
 };
 
