@@ -20,12 +20,14 @@ declare function string-equality-example()
 
 
 ## Writing Tests
-Tests are grouped into library modules in the xray test namespace, importing the xray assertions module:
+Tests are grouped into library modules in the xray test namespace, importing the xray assertions module along with the modules to be tested.
 
 ```xquery
 xquery version "1.0-ml";
 module namespace test = "http://github.com/robwhitby/xray/test";
 import module namespace assert = "http://github.com/robwhitby/xray/assertions" at "/xray/src/assertions.xqy";
+
+import module namespace some-module = "http://some-module-to-test" at "/some-module-to-test.xqy";
 
 declare function string-equality-example()
 {
@@ -35,7 +37,7 @@ declare function string-equality-example()
 
 declare function tests-can-contain-multiple-asserts()
 {
-  let $foo := "foo"
+  let $foo := some-module:foo()
   let $bar := "bar"
   return (
     assert:not-empty($foo),
@@ -65,7 +67,22 @@ declare function tests-can-contain-multiple-asserts()
 `format` - set output format to html, xml or text. Optional, defaults to html.
 
 ## Assertions
-See `src/assertions.xqy` for the current assertions.
+```xquery
+assert:equal($actual as item()*, $expected as item()*)
+```
+```xquery
+assert:not-equal($actual as item()*, $expected as item()*)
+```
+```xquery
+assert:empty($actual as item()*)
+```
+```xquery
+assert:not-empty($actual as item()*)
+```
+```xquery
+assert:error($actual as item()*, $expected-error-name as xs:string)
+```
+See `src/assertions.xqy` for the assertion definitions.
 
 
 ## Ignoring Tests 
@@ -80,5 +97,4 @@ See `test/tests.xqy` for an example.
 
 
 ## Acknowledgements
-Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser (part of https://github.com/xquery/xquerydoc). Without it I would still be hacking around with regexes.
-
+Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser (part of https://github.com/xquery/xquerydoc). 
