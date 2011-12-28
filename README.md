@@ -100,4 +100,4 @@ declare function IGNORE-this-test-will-be-ignored()
 Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser (part of https://github.com/xquery/xquerydoc). 
 
 ## HTML Results Screenshot
-!https://github.com/robwhitby/xray/raw/master/screenshot.png!
+![screenshot](https://github.com/robwhitby/xray/raw/master/screenshot.png)
