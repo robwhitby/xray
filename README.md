@@ -90,7 +90,7 @@ See `src/assertions.xqy` for the assertion definitions.
 See `test/tests.xqy` for an example.
 
 ## Ignoring Tests 
-Tests can be ignored by addding the prifix `IGNORE` to the test function name.
+Tests can be ignored by addding the prefix `IGNORE` to the test function name.
 
 ```xquery
 declare function IGNORE-this-test-will-be-ignored()
