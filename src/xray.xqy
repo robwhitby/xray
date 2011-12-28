@@ -6,7 +6,12 @@ import module namespace utils = "http://github.com/robwhitby/xray/utils" at "uti
 declare default element namespace "http://github.com/robwhitby/xray";
 
 
-declare function xray:run-tests($test-dir as xs:string, $module-pattern as xs:string?, $test-pattern as xs:string?, $format as xs:string?)
+declare function xray:run-tests(
+  $test-dir as xs:string, 
+  $module-pattern as xs:string?, 
+  $test-pattern as xs:string?, 
+  $format as xs:string?
+) 
 {
   let $modules := utils:get-modules($test-dir, fn:string($module-pattern))
   let $tests := 
@@ -28,23 +33,34 @@ declare function xray:run-tests($test-dir as xs:string, $module-pattern as xs:st
 };
 
 
-declare function xray:run-test($fn as xdmp:function) as element(test) 
+declare function xray:run-test(
+  $fn as xdmp:function
+) as element(test) 
 {
+  let $ignore := fn:starts-with(utils:get-local-name($fn), "IGNORE")
   let $test :=
-    try { xray:apply($fn) }
-    catch($ex) { element exception { xray:error($ex)} }
+    if ($ignore) then () 
+    else 
+      try { xray:apply($fn) }
+      catch($ex) { element exception { xray:error($ex)} }
   return element test {
     attribute name { utils:get-local-name($fn) },
     attribute result { 
-      if ($test/error:error or $test//descendant-or-self::assert[@result="failed"]) then "failed" else "passed"
+      if ($ignore) then "ignored"
+      else if ($test/error:error or $test//descendant-or-self::assert[@result="failed"]) then "failed" 
+      else "passed"
     },
     $test
   }
 };
 
 
-declare function xray:test-response($assertion as xs:string, $passed as xs:boolean, $actual as item()?, $expected as item()?)
-as element(assert)
+declare function xray:test-response(
+  $assertion as xs:string, 
+  $passed as xs:boolean, 
+  $actual as item()?, 
+  $expected as item()?
+) as element(assert)
 {
   element assert {
     attribute test { $assertion },
@@ -67,7 +83,8 @@ declare function xray:apply($function as xdmp:function)
 };
 
 
-declare function xray:error($ex as element(error:error)) as element(error:error)
+declare function xray:error($ex as element(error:error)) 
+as element(error:error)
 {
   $ex
 };

@@ -116,10 +116,14 @@ test:check-doc1-is-searchable()
   return assert:equal($results/doc1/fn:string(), "foo bar")
 };
 
-
 declare private function test:should-not-run-private-function()
 {
   fn:error((), "this test is private!")
+};
+
+declare function IGNORE-should-skip-this-test()
+{
+  fn:error((), "this test should be ignored!")
 };
 
 (:

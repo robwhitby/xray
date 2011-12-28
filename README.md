@@ -31,11 +31,11 @@ import module namespace some-module = "http://some-module-to-test" at "/some-mod
 
 declare function string-equality-example()
 {
-  let $foo := "foo"
+  let $foo := some-module:foo()
   return assert:equal($foo, "foo")
 };
 
-declare function tests-can-contain-multiple-asserts()
+declare function multiple-assert-example()
 {
   let $foo := some-module:foo()
   let $bar := "bar"
@@ -50,7 +50,7 @@ declare function tests-can-contain-multiple-asserts()
 ```
 
 ## Invoking Tests
-**xray** will find and execute all the test cases defined in a directory (and sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
+**xray** will find and execute all the test cases defined in a directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
 
 * browser - `http://server:port/xray/`
 * command line - test-runner.sh is a sample shell script, edit the default vars (tested on OSX only).
@@ -90,7 +90,11 @@ See `src/assertions.xqy` for the assertion definitions.
 See `test/tests.xqy` for an example.
 
 ## Ignoring Tests 
-Tests can be skipped by addding the `private` modifier to the function definition.
+Tests can be ignored by addding the prifix `IGNORE` to the test function name.
+
+```xquery
+declare function IGNORE-this-test-will-be-ignored()
+```
 
 ## Acknowledgements
 Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser (part of https://github.com/xquery/xquerydoc). 
