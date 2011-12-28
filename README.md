@@ -2,7 +2,7 @@
 
 Heads up: This project is very much a work in progress.
 
-**xray** is a framework for testing XQuery on MarkLogic Server. Test cases are written as standard XQuery functions like this:  
+**xray** is a framework for writing XQuery unit tests on MarkLogic Server. Test cases are written as standard XQuery functions like this:  
 
 ```xquery
 declare function string-equality-example()
@@ -13,7 +13,7 @@ declare function string-equality-example()
 ```
 
 ## Getting Started
-* Copy xray into the root directory of your project 
+* Clone/copy/symlink xray into the root directory of your project 
 * Create an HTTP app server pointing to the root directory of your project.
 * Check all is well at `http://server:port/xray/`
 * Write some tests..
@@ -84,17 +84,13 @@ assert:error($actual as item()*, $expected-error-name as xs:string)
 ```
 See `src/assertions.xqy` for the assertion definitions.
 
-
-## Ignoring Tests 
-Not implemented yet. 
-Workaround - add `private` modifier to function.
-
-
 ## Setup and teardown functions
 `setup()` and `teardown()` are special function signatures. If defined, `setup()` is invoked before any tests in a different transaction, so any database updates are visible to the tests. `teardown()` is executed after all tests in that module have finished.
 
 See `test/tests.xqy` for an example.
 
+## Ignoring Tests 
+Tests can be skipped by addding the `private` modifier to the function definition.
 
 ## Acknowledgements
 Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser (part of https://github.com/xquery/xquerydoc). 
