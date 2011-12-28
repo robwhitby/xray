@@ -102,6 +102,7 @@
       #summary { font-weight: bold; }
       .module { border: 1px solid #ccc; margin: 10px 0; }
       .failed { color: red; }
+      .ignored { color: orange; }
       .passed { color: green; }
     </style>
   </xsl:template>
