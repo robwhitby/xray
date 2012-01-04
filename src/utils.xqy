@@ -41,7 +41,7 @@ declare function utils:get-functions($module-path as xs:string) as xdmp:function
 declare function utils:get-modules($test-dir as xs:string, $pattern as xs:string?) as xs:string*
 {
   let $fs-dir := fn:concat(xdmp:modules-root(), fn:replace($test-dir, "^/+", ""))
-  where xdmp:filesystem-file-exists($fs-dir)
+  where utils:filesystem-directory-exists($fs-dir)
   return
     for $filepath in utils:get-filelist($fs-dir)
     where fn:matches(utils:relative-path($filepath), $pattern)
@@ -90,6 +90,12 @@ declare function utils:parse-xquery($module-path as xs:string) as element(XQuery
     let $parsed := parser:parse-XQuery($source)
     where fn:contains($parsed//ModuleDecl//StringLiteral, $test-ns-uri)
     return $parsed
+};
 
+
+declare private function utils:filesystem-directory-exists($dir as xs:string) as xs:boolean
+{
+  try  { fn:exists(xdmp:filesystem-directory($dir)) }
+  catch($e) { fn:false() }
 };
 
