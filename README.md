@@ -1,7 +1,5 @@
 # xray
 
-Heads up: This project is very much a work in progress.
-
 **xray** is a framework for writing XQuery unit tests on MarkLogic Server. Test cases are written as standard XQuery functions like this:  
 
 ```xquery
