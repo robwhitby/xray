@@ -20,6 +20,7 @@ declare function xray:run-tests(
       let $fns := 
         try { utils:get-functions($module) }
         catch ($ex) { xray:error($ex) }
+      where fn:exists($fns)
       return
         element module {
           attribute path { utils:relative-path($module) },
