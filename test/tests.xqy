@@ -132,3 +132,13 @@ declare function test:should-not-attempt-to-run-commented-out-function()
   fn:error((), "this test is commented out!")
 };
 :)
+
+declare function should-handle-sequences()
+{
+  assert:equal((1,2,3), (1,2,3)),
+  assert:not-equal((1,2,3), (1,2)),
+  assert:not-equal(1, (1,2)),
+  assert:not-equal((), 1),
+  assert:equal((1, "two", <three/>), (1, "two", <three/>))
+};
+

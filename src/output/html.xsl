@@ -1,6 +1,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:xray="http://github.com/robwhitby/xray"
                 xmlns:xdmp="http://marklogic.com/xdmp"
+                xmlns:error="http://marklogic.com/xdmp/error"
                 version="2.0"
                 exclude-result-prefixes="xray xdmp">
 
@@ -26,7 +27,7 @@
     </html>
   </xsl:template>
 
-  <xsl:template match="xray:module[xray:test]">
+  <xsl:template match="xray:module">
     <div class="module">
       <h3><xsl:value-of select="@path"/></h3>
       <xsl:apply-templates/>
@@ -58,19 +59,24 @@
       </form>
   </xsl:template>
 
+  <xsl:template match="error:error">
+    <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
+  </xsl:template>
+
   <xsl:template name="summary">
     <p id="summary">
       <xsl:choose>
-        <xsl:when test="xray:module/xray:test">
+        <xsl:when test="xray:module[xray:test|error:error]">
           <xsl:attribute name="class">
             <xsl:choose>
-                <xsl:when test="xray:module/xray:test[@result='failed']">failed</xsl:when>
+                <xsl:when test="xray:module[xray:test/@result='failed' or error:error]">failed</xsl:when>
                 <xsl:otherwise>passed</xsl:otherwise>
             </xsl:choose>
           </xsl:attribute>
           <xsl:value-of select="'Finished: Total', count(xray:module/xray:test)" />
           <xsl:value-of select="', Failed', count(xray:module/xray:test[@result='failed'])" />
           <xsl:value-of select="', Ignored', count(xray:module/xray:test[@result='ignored'])" />
+          <xsl:value-of select="', Errors', count(xray:module/error:error)" />
           <xsl:value-of select="', Passed', count(xray:module/xray:test[@result='passed'])" />
         </xsl:when>
         <xsl:otherwise>

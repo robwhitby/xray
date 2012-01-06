@@ -17,15 +17,20 @@ declare function xray:run-tests(
   let $tests := 
     element tests {
       for $module in $modules
-      let $fns := utils:get-functions($module)
+      let $fns := 
+        try { utils:get-functions($module) }
+        catch ($ex) { xray:error($ex) }
       return
         element module {
           attribute path { utils:relative-path($module) },
-          xray:apply($fns[utils:get-local-name(.) = "setup"]),
-          for $fn in $fns[fn:not(utils:get-local-name(.) = ("setup", "teardown"))]
-          where fn:matches(utils:get-local-name($fn), fn:string($test-pattern))
-          return xray:run-test($fn),
-          xray:apply($fns[utils:get-local-name(.) = "teardown"])  
+          if ($fns instance of element(error:error)) then $fns 
+          else ( 
+            xray:apply($fns[utils:get-local-name(.) = "setup"]),
+            for $fn in $fns[fn:not(utils:get-local-name(.) = ("setup", "teardown"))]
+            where fn:matches(utils:get-local-name($fn), fn:string($test-pattern))
+            return xray:run-test($fn),
+            xray:apply($fns[utils:get-local-name(.) = "teardown"])  
+          )
         }
     }
   return
@@ -58,14 +63,14 @@ declare function xray:run-test(
 declare function xray:test-response(
   $assertion as xs:string, 
   $passed as xs:boolean, 
-  $actual as item()?, 
-  $expected as item()?
+  $actual as item()*, 
+  $expected as item()*
 ) as element(assert)
 {
   element assert {
     attribute test { $assertion },
     attribute result { if ($passed) then "passed" else "failed" },
-    element xray:actual { ($actual, "()")[1] },
+    element xray:actual { $actual },
     element xray:expected { $expected }
   }
 };

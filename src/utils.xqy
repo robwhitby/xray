@@ -87,9 +87,13 @@ declare function utils:parse-xquery($module-path as xs:string) as element(XQuery
   let $source := fn:string(xdmp:filesystem-file($module-path))
   where fn:contains($source, $test-ns-uri) (: preliminary check to speed things up a bit :)
   return 
-    let $parsed := parser:parse-XQuery($source)
-    where fn:contains($parsed//ModuleDecl//StringLiteral, $test-ns-uri)
-    return $parsed
+    let $parsed := parser:parse-XQuery($source) 
+    return 
+      if (fn:contains($parsed//ModuleDecl//StringLiteral, $test-ns-uri))
+      then $parsed
+      else if ($parsed/self::ERROR)
+      then fn:error(xs:QName("XRAY-PARSE"), "Error parsing module", $parsed)
+      else () 
 };
 
 
