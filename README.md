@@ -83,7 +83,7 @@ assert:error($actual as item()*, $expected-error-name as xs:string)
 See `src/assertions.xqy` for the assertion definitions.
 
 ## Setup and teardown functions
-`setup()` and `teardown()` are special function signatures. If defined, `setup()` is invoked before any tests in a different transaction, so any database updates are visible to the tests. `teardown()` is executed after all tests in that module have finished.
+`setup()` and `teardown()` are special function signatures. If defined, `setup()` is invoked in a different transaction before any tests, so any database updates are visible to the tests. `teardown()` is executed after all tests in that module have finished.
 
 See `test/tests.xqy` for an example.
 
@@ -95,7 +95,8 @@ declare function IGNORE-this-test-will-be-ignored()
 ```
 
 ## Acknowledgements
-Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser (part of https://github.com/xquery/xquerydoc). 
-
-## HTML Results Screenshot
-![screenshot](https://github.com/robwhitby/xray/raw/master/screenshot.png)
+Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser lifted from https://github.com/xquery/xquerydoc
+&nbsp;
+## Screenshots
+![screenshot of html output](https://github.com/robwhitby/xray/raw/master/screenshot-html.png)
+![screenshot of terminal output](https://github.com/robwhitby/xray/raw/master/screenshot-terminal.png)
