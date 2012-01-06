@@ -11,7 +11,8 @@ declare function string-equality-example()
 ```
 
 ## Getting Started
-* Clone/copy/symlink xray into the root directory of your project 
+* Clone/copy/symlink xray into the root directory of your project<br/>
+`git submodule add git://github.com/robwhitby/xray.git` 
 * Create an HTTP app server pointing to the root directory of your project.
 * Check all is well at `http://server:port/xray/`
 * Write some tests..
