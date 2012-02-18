@@ -11,7 +11,7 @@ declare function xray:run-tests(
   $module-pattern as xs:string?, 
   $test-pattern as xs:string?, 
   $format as xs:string?
-) 
+) as item()*
 {
   let $modules := utils:get-modules($test-dir, fn:string($module-pattern))
   let $tests := 
@@ -44,11 +44,7 @@ declare function xray:run-test(
 ) as element(test) 
 {
   let $ignore := fn:starts-with(utils:get-local-name($fn), "IGNORE")
-  let $test :=
-    if ($ignore) then () 
-    else 
-      try { xray:apply($fn) }
-      catch($ex) { element exception { xray:error($ex)} }
+  let $test := if ($ignore) then () else xray:apply($fn)
   return element test {
     attribute name { utils:get-local-name($fn) },
     attribute result { 
@@ -71,26 +67,32 @@ declare function xray:test-response(
   element assert {
     attribute test { $assertion },
     attribute result { if ($passed) then "passed" else "failed" },
-    element xray:actual { $actual },
-    element xray:expected { $expected }
+    element actual { $actual },
+    element expected { $expected }
   }
 };
 
 
-declare function xray:apply($function as xdmp:function)
+declare private function xray:apply(
+  $function as xdmp:function
+) as item()*
 {
-  xdmp:eval("
-    declare variable $fn as xdmp:function external; 
-    declare option xdmp:update 'true';
-    xdmp:apply($fn)",
-    (fn:QName("","fn"), $function),
-    <options xmlns="xdmp:eval"><isolation>different-transaction</isolation></options>
-  )
+  try {
+    xdmp:eval("
+      declare variable $fn as xdmp:function external;
+      declare option xdmp:update 'true';
+      xdmp:apply($fn)",
+      (fn:QName("","fn"), $function),
+      <options xmlns="xdmp:eval"><isolation>different-transaction</isolation></options>
+    )
+  }
+  catch($ex) { element exception { xray:error($ex)} }
 };
 
 
-declare function xray:error($ex as element(error:error)) 
-as element(error:error)
+declare private function xray:error(
+  $ex as element(error:error)
+) as element(error:error)
 {
   $ex
 };
