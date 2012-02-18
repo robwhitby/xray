@@ -40,3 +40,17 @@ declare function assert:error($actual as item()*, $expected-error-name as xs:str
   let $status := $actual-error-name = $expected-error-name
   return xray:test-response("error", $status, ($actual-error-name, $actual)[1], $expected-error-name)
 };
+
+
+declare function assert:true($actual as item()*)
+{
+  let $status := $actual instance of xs:boolean and $actual
+  return xray:test-response("true", $status, $actual, "true")
+};
+
+
+declare function assert:false($actual as item()*)
+{
+  let $status := $actual instance of xs:boolean and fn:not($actual)
+  return xray:test-response("false", $status, $actual, "false")
+};

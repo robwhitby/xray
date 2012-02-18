@@ -142,3 +142,8 @@ declare function should-handle-sequences()
   assert:equal((1, "two", <three/>), (1, "two", <three/>))
 };
 
+declare function should-be-able-to-assert-true-and-false()
+{
+  assert:true(fn:true()),
+  assert:false(fn:false())
+};
