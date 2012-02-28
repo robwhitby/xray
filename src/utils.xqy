@@ -116,6 +116,11 @@ declare private function utils:filesystem-directory-exists(
 ) as xs:boolean
 {
   try  { fn:exists(xdmp:filesystem-directory($dir)) }
-  catch($e) { fn:false() }
+  catch($e) 
+  { 
+    if ($e/error:code = "SVC-DIROPEN") 
+    then fn:false() 
+    else xdmp:rethrow()
+  }
 };
 
