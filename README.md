@@ -101,8 +101,14 @@ Tests can be ignored by addding the prefix `IGNORE` to the test function name.
 declare function IGNORE-this-test-will-be-ignored()
 ```
 
+## MarkLogic Configuration
+The app server user must belong to a role with the following execute privileges:
+`xdmp:eval`, `xdmp:filesystem-directory`, `xdmp:filesystem-file`, `xdmp:invoke`, `xdmp:xslt-invoke`
+
+Test modules must be written in XQuery version "1.0-ml" to be parsed correctly.
+
 ## Acknowledgements
-Thanks to [John Snelson](http://github.com/jpcs) for the XQuery parser lifted from https://github.com/xquery/xquerydoc
+Thanks to Gunther Rademacher's [REx Parser Generator](http://www.bottlecaps.de/rex/) and [John Snelson](http://github.com/jpcs) for the XQuery 1.0-ml parser.
 
 &nbsp;
 ## Screenshots
