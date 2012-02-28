@@ -16,6 +16,9 @@ declare function xray:run-tests(
   let $modules := utils:get-modules($test-dir, fn:string($module-pattern))
   let $tests := 
     element tests {
+      attribute dir { $test-dir },
+      attribute module-pattern { $module-pattern },
+      attribute test-pattern { $test-pattern },
       for $module in $modules
       let $fns := 
         try { utils:get-functions($module) }
