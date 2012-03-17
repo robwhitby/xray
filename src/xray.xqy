@@ -20,20 +20,21 @@ declare function xray:run-tests(
       attribute module-pattern { $module-pattern },
       attribute test-pattern { $test-pattern },
       for $module in $modules
-      let $fns := 
+      let $all-fns := 
         try { utils:get-functions($module) }
         catch ($ex) { xray:error($ex) }
-      where fn:exists($fns)
+      let $error := if ($all-fns instance of element(error:error)) then $all-fns else ()
+      let $test-fns := if (fn:exists($error)) then () else xray:test-functions($all-fns, $test-pattern)
+      where fn:exists(($test-fns, $error))
       return
         element module {
           attribute path { utils:relative-path($module) },
-          if ($fns instance of element(error:error)) then $fns 
+          if (fn:exists($error)) then $error 
           else ( 
-            xray:apply($fns[utils:get-local-name(.) = "setup"]),
-            for $fn in $fns[fn:not(utils:get-local-name(.) = ("setup", "teardown"))]
-            where fn:matches(utils:get-local-name($fn), fn:string($test-pattern))
+            xray:apply($all-fns[utils:get-local-name(.) = "setup"]),
+            for $fn in $test-fns
             return xray:run-test($fn),
-            xray:apply($fns[utils:get-local-name(.) = "teardown"])  
+            xray:apply($all-fns[utils:get-local-name(.) = "teardown"])  
           )
         }
     }
@@ -73,6 +74,20 @@ declare function xray:test-response(
     element actual { $actual },
     element expected { $expected }
   }
+};
+
+
+declare private function xray:test-functions(
+  $functions as xdmp:function*,
+  $pattern as xs:string?
+) as xdmp:function*
+{         
+  for $fn in $functions
+  let $name := utils:get-local-name($fn)
+  where 
+    fn:matches($name, fn:string($pattern))
+    and fn:not($name = ("setup", "teardown"))
+  return $fn
 };
 
 
