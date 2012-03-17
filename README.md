@@ -105,6 +105,10 @@ declare function IGNORE-this-test-will-be-ignored()
 The app server user must belong to a role with the following execute privileges:
 `xdmp:eval`, `xdmp:filesystem-directory`, `xdmp:filesystem-file`, `xdmp:invoke`, `xdmp:xslt-invoke`
 
+To work with modules stored in a modules database, the additional privileges are required:
+`xdmp:eval-in`
+And the user must have read rights to files in the modules db.
+
 Test modules must be written in XQuery version "1.0-ml" to be parsed correctly.
 
 ## Acknowledgements

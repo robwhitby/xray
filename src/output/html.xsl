@@ -16,7 +16,7 @@
     <html>
       <head>
         <title>xray</title>
-        <link rel="icon" type="image/png" href="favicon.png" />
+        <link rel="icon" type="image/png" href="favicon.ico" />
         <xsl:call-template name="css"/>
       </head>
       <body>
@@ -99,7 +99,7 @@
 
 
   <xsl:template name="no-tests">
-    <h2>No tests found at <xsl:value-of select="xdmp:modules-root()"/><xsl:value-of select="$test-dir"/></h2>
+    <h2>No matching tests found at <xsl:value-of select="xdmp:modules-root()"/><xsl:value-of select="$test-dir"/></h2>
     <div class="module">
       <h3>Sample test module</h3>
       <pre class="code">xquery version <span class="s">"1.0-ml"</span>;

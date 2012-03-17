@@ -1,48 +1,29 @@
 xquery version "1.0-ml";
 
 module namespace utils = "http://github.com/robwhitby/xray/utils";
+
 declare namespace xray = "http://github.com/robwhitby/xray";
 declare namespace test = "http://github.com/robwhitby/xray/test";
 import module namespace parser = "XQueryML10" at "parsers/XQueryML10.xq";
+import module namespace modules-fs = "http://github.com/robwhitby/xray/modules-fs" at "modules-filesystem.xqy";
+import module namespace modules-db = "http://github.com/robwhitby/xray/modules-db" at "modules-database.xqy";
 
-declare private variable $test-ns-uri := fn:namespace-uri-for-prefix("test", <test:x/>);
-
+declare private variable $TEST-NS-URI := fn:namespace-uri-for-prefix("test", <test:x/>);
+declare private variable $USE-MODULES-DB := (xdmp:modules-database() ne 0);
   
-declare function utils:get-modules(
+
+declare function get-modules(
   $test-dir as xs:string,
   $pattern as xs:string?
 ) as xs:string*
 {
-  let $test-dir :=
-    if (xdmp:platform() eq "winnt")
-    then fn:replace($test-dir, "/", "\\")
-    else fn:replace($test-dir, "\\", "/")
-  let $fs-dir := fn:concat(xdmp:modules-root(), fn:replace($test-dir, "^[/\\]+", ""))
-  where utils:filesystem-directory-exists($fs-dir)
-  return
-    for $filepath in utils:get-filelist($fs-dir)
-    where fn:matches(utils:relative-path($filepath), fn:string($pattern))
-    return $filepath
-};
-
-  
-declare function utils:get-filelist(
-  $dir as xs:string
-) as xs:string*
-{
-  for $entry in xdmp:filesystem-directory($dir)/dir:entry
-  order by $entry/dir:type descending, $entry/dir:filename ascending
-  return
-    if ($entry/dir:type = "file")
-    then
-      if (fn:matches($entry/dir:pathname, "\.xqy?$"))
-      then $entry/dir:pathname/fn:string()
-      else ()
-    else utils:get-filelist($entry/dir:pathname/fn:string())
+  if ($USE-MODULES-DB)
+  then modules-db:get-modules($test-dir, $pattern, xdmp:modules-root())
+  else modules-fs:get-modules($test-dir, $pattern)
 };
 
 
-declare function utils:get-functions(
+declare function get-functions(
   $module-path as xs:string
 ) as xdmp:function*
 {
@@ -50,14 +31,14 @@ declare function utils:get-functions(
   let $qname := xs:QName($fn/FunctionName/QName)
   let $qname :=
     if (fn:namespace-uri-from-QName($qname) eq "") 
-    then fn:QName($test-ns-uri, fn:local-name-from-QName($qname))
+    then fn:QName($TEST-NS-URI, fn:local-name-from-QName($qname))
     else $qname
   where $fn[fn:not(TOKEN = "private")]
-  return xdmp:function($qname, utils:relative-path($module-path))
+  return xdmp:function($qname, relative-path($module-path))
 };
 
 
-declare function utils:relative-path(
+declare function relative-path(
   $path as xs:string
 ) as xs:string
 {
@@ -65,7 +46,7 @@ declare function utils:relative-path(
 };
 
 
-declare function utils:get-local-name(
+declare function get-local-name(
   $fn as xdmp:function
 ) as xs:string
 {
@@ -73,7 +54,7 @@ declare function utils:get-local-name(
 };
 
 
-declare function utils:transform(
+declare function transform(
   $el as element(), 
   $test-dir as xs:string, 
   $module-pattern as xs:string?, 
@@ -94,16 +75,16 @@ declare function utils:transform(
 };
 
 
-declare private function utils:parse-xquery(
+declare private function parse-xquery(
   $module-path as xs:string
 ) as element(XQuery)?
 {
-  let $source := fn:string(xdmp:filesystem-file($module-path))
-  where fn:contains($source, $test-ns-uri) (: preliminary check to speed things up a bit :)
+  let $source as xs:string := get-module($module-path)
+  where fn:contains($source, $TEST-NS-URI) (: preliminary check to speed things up a bit :)
   return 
     let $parsed := parser:parse-XQuery($source) 
     return 
-      if (fn:contains($parsed//ModuleDecl//StringLiteral, $test-ns-uri))
+      if (fn:contains($parsed//ModuleDecl//StringLiteral, $TEST-NS-URI))
       then $parsed
       else if ($parsed/self::ERROR)
       then fn:error(xs:QName("XRAY-PARSE"), "Error parsing module", $parsed)
@@ -111,16 +92,12 @@ declare private function utils:parse-xquery(
 };
 
 
-declare private function utils:filesystem-directory-exists(
-  $dir as xs:string
-) as xs:boolean
+declare private function get-module(
+  $module-path as xs:string
+) as xs:string
 {
-  try  { fn:exists(xdmp:filesystem-directory($dir)) }
-  catch($e) 
-  { 
-    if ($e/error:code = "SVC-DIROPEN") 
-    then fn:false() 
-    else xdmp:rethrow()
-  }
+  if ($USE-MODULES-DB)
+  then modules-db:get-module($module-path)
+  else modules-fs:get-module($module-path)
 };
 

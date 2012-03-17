@@ -4,7 +4,7 @@
 
 #Edit these default values
 #####################################################################
-BASEURL=http://localhost:8889/xray/index.xqy
+BASEURL=http://localhost:8889/xray/
 DIR=test
 MODULES=
 TESTS=

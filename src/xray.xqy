@@ -13,7 +13,7 @@ declare function xray:run-tests(
   $format as xs:string?
 ) as item()*
 {
-  let $modules := utils:get-modules($test-dir, fn:string($module-pattern))
+  let $modules as xs:string* := utils:get-modules($test-dir, fn:string($module-pattern))
   let $tests := 
     element tests {
       attribute dir { $test-dir },
