@@ -10,8 +10,7 @@ declare private variable $eval-options :=
 
 declare function get-modules(
   $test-dir as xs:string,
-  $pattern as xs:string?,
-  $modules-root as xs:string
+  $pattern as xs:string?
 ) as xs:string*
 {
   xdmp:eval('
@@ -32,7 +31,7 @@ declare function get-modules(
   (
     xs:QName("test-dir"), $test-dir, 
     xs:QName("pattern"), $pattern,
-    xs:QName("modules-root"), $modules-root
+    xs:QName("modules-root"), xdmp:modules-root()
   ),
   $eval-options)
 };
@@ -48,5 +47,5 @@ declare function get-module(
     fn:doc($uri)
   ', 
   (xs:QName("uri"), $module-path),
-  $eval-options)  
+  $eval-options)
 };

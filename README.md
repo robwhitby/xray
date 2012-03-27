@@ -11,7 +11,9 @@ declare function string-equality-example()
 ```
 
 ## Getting Started
-* Clone/copy/symlink xray into the root directory of your project<br/>
+* Clone/copy/symlink xray into the root directory of your project e.g.<br/>
+`git clone git://github.com/robwhitby/xray.git`
+or
 `git submodule add git://github.com/robwhitby/xray.git` 
 * Create an HTTP app server pointing to the root directory of your project.
 * Check all is well at `http://server:port/xray/`
@@ -110,6 +112,7 @@ To work with modules stored in a modules database, the additional privileges are
 And the user must have read rights to files in the modules db.
 
 Test modules must be written in XQuery version "1.0-ml" to be parsed correctly.
+
 
 ## Acknowledgements
 Thanks to Gunther Rademacher's [REx Parser Generator](http://www.bottlecaps.de/rex/) and [John Snelson](http://github.com/jpcs) for the XQuery 1.0-ml parser.

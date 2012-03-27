@@ -18,7 +18,7 @@ declare function get-modules(
 ) as xs:string*
 {
   if ($USE-MODULES-DB)
-  then modules-db:get-modules($test-dir, $pattern, xdmp:modules-root())
+  then modules-db:get-modules($test-dir, $pattern)
   else modules-fs:get-modules($test-dir, $pattern)
 };
 
