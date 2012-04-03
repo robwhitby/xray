@@ -12,8 +12,8 @@ declare function string-equality-example()
 
 ## Getting Started
 * Clone/copy/symlink xray into the root directory of your project e.g.<br/>
-`git clone git://github.com/robwhitby/xray.git`
-or
+`git clone git://github.com/robwhitby/xray.git`  
+or  
 `git submodule add git://github.com/robwhitby/xray.git` 
 * Create an HTTP app server pointing to the root directory of your project.
 * Check all is well at `http://server:port/xray/`
@@ -70,23 +70,17 @@ declare function multiple-assert-example()
 ## Assertions
 ```xquery
 assert:equal($actual as item()*, $expected as item()*)
-```
-```xquery
+
 assert:not-equal($actual as item()*, $expected as item()*)
-```
-```xquery
+
 assert:empty($actual as item()*)
-```
-```xquery
+
 assert:not-empty($actual as item()*)
-```
-```xquery
+
 assert:error($actual as item()*, $expected-error-name as xs:string)
-```
-```xquery
+
 assert:true($actual as item()*)
-```
-```xquery
+
 assert:false($actual as item()*)
 ```
 See `src/assertions.xqy` for the assertion definitions.
