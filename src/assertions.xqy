@@ -6,14 +6,14 @@ import module namespace xray = "http://github.com/robwhitby/xray" at "xray.xqy";
 
 declare function assert:equal($actual as item()*, $expected as item()*) as element()
 {
-  let $status := fn:deep-equal($actual, $expected)
+  let $status := deep-equal($actual, $expected)
   return xray:test-response("equal", $status, $actual, $expected)
 };
 
 
 declare function assert:not-equal($actual as item()*, $expected as item()*) as element()
 {
-  let $status := fn:not(fn:deep-equal($actual, $expected))
+  let $status := fn:not(deep-equal($actual, $expected))
   return xray:test-response("not-equal", $status, $actual, $expected)
 };
 
@@ -53,4 +53,12 @@ declare function assert:false($actual as item()*)
 {
   let $status := $actual instance of xs:boolean and fn:not($actual)
   return xray:test-response("false", $status, $actual, "false")
+};
+
+
+declare private function deep-equal($a as item()*, $b as item()*) as xs:boolean
+{
+  if ($a instance of cts:query)
+  then fn:deep-equal(<q>{$a}</q>, <q>{$b}</q>)
+  else fn:deep-equal($a, $b)
 };

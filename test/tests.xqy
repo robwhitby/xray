@@ -147,3 +147,24 @@ declare function should-be-able-to-assert-true-and-false()
   assert:true(fn:true()),
   assert:false(fn:false())
 };
+
+declare function should-be-able-to-test-simple-cts-query-equality()
+{
+  let $query := <cts:and-query/>
+  return (
+    assert:equal(cts:and-query(()), cts:and-query(())),
+    assert:equal($query, $query),
+    assert:equal(cts:and-query(()), $query),
+    assert:equal($query, <cts:and-query/>)
+  )
+};
+
+declare function should-be-able-to-test-complex-cts-query-equality()
+{
+  let $query := 
+    cts:or-query((
+      cts:element-value-query(xs:QName("foo"), ("bar", "baz"), ("unstemmed", "case-insensitive"), 5),
+      cts:word-query("foo", "stemmed", 10)
+    ))
+  return assert:equal($query, $query)
+};
