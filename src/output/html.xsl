@@ -54,7 +54,7 @@
   </xsl:template>
 
   <xsl:template name="header">
-      <h1><a href="http://github.com/robwhitby/xray">xray</a></h1>
+      <h1><a href="http://robwhitby.github.com/xray">xray</a></h1>
       <form>
         <label for="test-dir"><abbr title="test directory path relative from app server root">directory</abbr></label>
         <input type="text" name="dir" id="test-dir" value="{$test-dir}"/>
@@ -119,7 +119,14 @@ declare function <span class="f">node-should-equal-foo</span> ()
       body { margin: 0 10px; }
       body, input, button { font-family: "Courier New",Sans-serif; }
       h1 { margin: 0 0 30px 0; }
-      h1 a:link, h1 a:visited, h1 a:hover, h1 a:active { padding: 10px 10px; text-decoration:none; color: #fff; background-color: #000; border: 1px solid #000; }
+      h1 a:link, h1 a:visited, h1 a:hover, h1 a:active { 
+        padding: 10px 10px; 
+        text-decoration:none; color: #fff;
+        background-color: #000;
+        border: 1px solid #000;
+        text-shadow: #fff 1px 1px 15px;
+        -webkit-font-smoothing: antialiased;
+      }
       h1 a:hover { color: #000; background-color: #fff; }
       h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
       h3 { background-color: #eee; }
