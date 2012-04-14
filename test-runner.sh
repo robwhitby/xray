@@ -1,8 +1,9 @@
 #!/bin/bash
 
-#Sample test runner script, only tested on OSX
+# Rather than modify this script, consider creating a wrapper script with
+# better defaults for your project. See run-xray-tests.sh
 
-#Edit these default values
+#Default parameter values
 #####################################################################
 BASEURL=http://localhost:8889/xray/
 DIR=test
