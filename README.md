@@ -78,7 +78,7 @@ To invoke tests stored elsewhere, set the directory parameter.
 
 `-u` the url of the MarkLogic HTTP app server to connect to.
 
-## Command-Line Shortcut
+## Command Line Shortcut
 Rather than modify test-runner.sh or always pass in custom parameters, it's handy to create a small wrapper script in the project root, something like this:
 
 ```shell
@@ -90,19 +90,19 @@ See `run-xray-tests.sh` for an example.
 
 ## Assertions
 ```xquery
-assert:equal($actual as item()*, $expected as item()*)
+assert:equal ($actual as item()*, $expected as item()*)
 
-assert:not-equal($actual as item()*, $expected as item()*)
+assert:not-equal ($actual as item()*, $expected as item()*)
 
-assert:empty($actual as item()*)
+assert:empty ($actual as item()*)
 
-assert:not-empty($actual as item()*)
+assert:not-empty ($actual as item()*)
 
-assert:error($actual as item()*, $expected-error-name as xs:string)
+assert:error ($actual as item()*, $expected-error-name as xs:string)
 
-assert:true($actual as item()*)
+assert:true ($actual as item()*)
 
-assert:false($actual as item()*)
+assert:false ($actual as item()*)
 ```
 See `src/assertions.xqy` for the assertion definitions.
 
