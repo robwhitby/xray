@@ -57,15 +57,34 @@ declare function multiple-assert-example()
 * command line - test-runner.sh is a sample shell script, edit the default vars (tested on OSX only).
 * invoke from xquery - import `src/xray.xqy` and call `xray:run-tests()`. See `index.xqy` for example.
 
+By default, xray looks for a directory called `test` at the same level as the `xray` directory:
+<pre>
+project-root/
+├── src
+├── test
+│   └── tests.xqy
+└── xray
+</pre>
 
-## Parameters
-`dir` - test directory path relative from the app server modules root. Optional, defaults to "test".
+To invoke tests stored elsewhere, set the directory parameter.
 
-`modules` - regex match on module name. Optional, default to match all.
 
-`tests` - regex match on test name. Optional, defaults to match all.
+## Command Line Parameters
+`-d` test directory path relative from the app server modules root. Optional, defaults to "test".
 
-`format` - set output format to html, xml or text. Optional, defaults to html.
+`-m` regex match on module name. Optional, default to match all.
+
+`-t` regex match on test name. Optional, defaults to match all.
+
+`-u` the url of the MarkLogic HTTP app server to connect to.
+
+## Command-Line Shortcut
+Rather than modify test-runner.sh or always pass in custom parameters, it's handy to create a small wrapper script in the project root, something like this:
+
+```shell
+./xray/test-runner.sh -u http://localhost:8765/xray/ -d testdir $*
+```
+
 
 ## Assertions
 ```xquery
