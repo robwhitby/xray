@@ -85,6 +85,8 @@ Rather than modify test-runner.sh or always pass in custom parameters, it's hand
 ./xray/test-runner.sh -u http://localhost:8765/xray/ -d testdir $*
 ```
 
+See `run-xray-tests.sh` for an example.
+
 
 ## Assertions
 ```xquery
