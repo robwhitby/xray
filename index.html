@@ -1,168 +1,76 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
 
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+  <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+  <link rel="icon" type="image/png" href="favicon.ico" />
 
-    <title>xray by robwhitby</title>
-  </head>
+  <title>xray - xquery unit testing</title>
+</head>
 
-  <body>
+<body>
 
-    <header>
-      <div class="container">
-        <h1>xray</h1>
-        <h2>XQuery test framework</h2>
-
-        <section id="downloads">
-          <a href="https://github.com/robwhitby/xray/zipball/master" class="btn">Download as .zip</a>
-          <a href="https://github.com/robwhitby/xray/tarball/master" class="btn">Download as .tar.gz</a>
-          <a href="https://github.com/robwhitby/xray" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
-
+  <header>
     <div class="container">
-      <section id="main_content">
-        <p><strong>xray</strong> is a framework for writing XQuery unit tests on MarkLogic Server. Test cases are written as standard XQuery functions like this:  </p>
+      <h1><a href="http://github.com/robwhitby/xray">xray</a></h1>
+      <h2>An XQuery unit test framework for MarkLogic Server</h2>
+
+      <section id="downloads">
+        <a href="https://github.com/robwhitby/xray/zipball/master" class="btn">Download as .zip</a>
+        <a href="https://github.com/robwhitby/xray/tarball/master" class="btn">Download as .tar.gz</a>
+        <a href="https://github.com/robwhitby/xray" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+      </section>
+    </div>
+  </header>
+
+  <div class="container">
+    <section id="main_content">
+      <p>
+        <strong>xray</strong> is a framework for writing XQuery unit tests on MarkLogic Server. Test cases are written as standard XQuery functions like this:  
+      </p>
 
 <div class="highlight">
-<pre><span class="k">declare</span> <span class="k">function</span> <span class="nf">string-equality-example</span><span class="p">()</span>
+<pre><span class="k">declare</span> <span class="k">function</span> <span class="nf">string-equality-example </span><span class="p">()</span>
 <span class="p">{</span>
   <span class="k">let</span> <span class="nv">$foo</span> <span class="o">:=</span> <span class="s2">"foo"</span>
   <span class="k">return</span> <span class="nf">assert:equal</span><span class="p">(</span><span class="nv">$foo</span><span class="p">,</span> <span class="s2">"foo"</span><span class="p">)</span>
 <span class="p">};</span>
 </pre>
 </div>
+ 
+
+      <h2>Getting Started</h2>
+      <ul>
+        <li>Clone/copy/symlink xray into the root directory of your project e.g.<br>
+          <code>git clone git://github.com/robwhitby/xray.git</code> or<br>
+          <code>git submodule add git://github.com/robwhitby/xray.git</code> 
+        </li>
+        <li>Create an HTTP app server pointing to the root directory of your project.</li>
+        <li>Check all is well at <code>http://server:port/xray/</code></li>
+        <li>Write some tests..</li>
+      </ul>
+
+      <h2>More Information</h2>
+      <p>
+        See the <a href="http://github.com/robwhitby/xray/blob/master/README.md">readme file</a> for detailed information about writing and running tests. If you have any questions or suggestions I'd love to hear them, see <a href="">xray issues</a> on GitHub.
+      </p>
+        
+      <p>
+        Thanks,<br>Rob<br>
+        <a href="http://www.twitter.com/robwhitby">@robwhitby</a>
+      </p>
 
 
-<h2>Getting Started</h2>
+      <h2>Screenshots</h2>
 
-<ul>
-<li>Clone/copy/symlink xray into the root directory of your project e.g.<br><code>git clone git://github.com/robwhitby/xray.git</code>
-or<br>
-<code>git submodule add git://github.com/robwhitby/xray.git</code> </li>
-<li>Create an HTTP app server pointing to the root directory of your project.</li>
-<li>Check all is well at <code>http://server:port/xray/</code>
-</li>
-<li>Write some tests..</li>
-</ul><h2>Writing Tests</h2>
+      <p><img src="https://github.com/robwhitby/xray/raw/master/screenshot-html.png" alt="screenshot of html output"><img src="https://github.com/robwhitby/xray/raw/master/screenshot-terminal.png" alt="screenshot of terminal output"></p>
+    </section>
+  </div>
 
-<p>Tests are grouped into library modules in the xray test namespace. Import the xray assertions module along with the modules to be tested.</p>
-
-<div class="highlight">
-<pre><span class="kp">xquery</span> <span class="kp">version</span> <span class="s2">"1.0-ml"</span><span class="p">;</span>
-<span class="k">module</span> <span class="k">namespace</span> <span class="nn">test</span> <span class="o">=</span> <span class="s2">"<a href="http://github.com/robwhitby/xray/test">http://github.com/robwhitby/xray/test</a>"</span><span class="p">;</span>
-<span class="kp">import</span> <span class="kp">module</span> <span class="k">namespace</span> <span class="nn">assert</span> <span class="o">=</span> <span class="s2">"<a href="http://github.com/robwhitby/xray/assertions">http://github.com/robwhitby/xray/assertions</a>"</span> <span class="k">at</span> <span class="s2">"/xray/src/assertions.xqy"</span><span class="p">;</span>
-
-<span class="kp">import</span> <span class="kp">module</span> <span class="k">namespace</span> <span class="nn">some-module</span> <span class="o">=</span> <span class="s2">"http://some-module-to-test"</span> <span class="k">at</span> <span class="s2">"/some-module-to-test.xqy"</span><span class="p">;</span>
-
-<span class="k">declare</span> <span class="k">function</span> <span class="nf">string-equality-example</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="k">let</span> <span class="nv">$foo</span> <span class="o">:=</span> <span class="nf">some-module:foo</span><span class="p">()</span>
-  <span class="k">return</span> <span class="nf">assert:equal</span><span class="p">(</span><span class="nv">$foo</span><span class="p">,</span> <span class="s2">"foo"</span><span class="p">)</span>
-<span class="p">};</span>
-
-<span class="k">declare</span> <span class="k">function</span> <span class="nf">multiple-assert-example</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="k">let</span> <span class="nv">$foo</span> <span class="o">:=</span> <span class="nf">some-module:foo</span><span class="p">()</span>
-  <span class="k">let</span> <span class="nv">$bar</span> <span class="o">:=</span> <span class="s2">"bar"</span>
-  <span class="k">return</span> <span class="p">(</span>
-    <span class="nf">assert:not-empty</span><span class="p">(</span><span class="nv">$foo</span><span class="p">),</span>
-    <span class="nf">assert:equal</span><span class="p">(</span><span class="nv">$foo</span><span class="p">,</span> <span class="s2">"foo"</span><span class="p">),</span>
-    <span class="nf">assert:not-equal</span><span class="p">(</span><span class="nv">$foo</span><span class="p">,</span> <span class="nv">$bar</span><span class="p">)</span>
-  <span class="p">)</span>
-<span class="p">};</span>
-
-<span class="c">(: more tests :)</span>
-</pre>
-</div>
-
-
-<h2>Invoking Tests</h2>
-
-<p><strong>xray</strong> will find and execute all the test cases defined in a directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.</p>
-
-<ul>
-<li>browser - <code>http://server:port/xray/</code>
-</li>
-<li>command line - test-runner.sh is a sample shell script, edit the default vars (tested on OSX only).</li>
-<li>invoke from xquery - import <code>src/xray.xqy</code> and call <code>xray:run-tests()</code>. See <code>index.xqy</code> for example.</li>
-</ul><h2>Parameters</h2>
-
-<p><code>dir</code> - test directory path relative from the app server modules root. Optional, defaults to "test".</p>
-
-<p><code>modules</code> - regex match on module name. Optional, default to match all.</p>
-
-<p><code>tests</code> - regex match on test name. Optional, defaults to match all.</p>
-
-<p><code>format</code> - set output format to html, xml or text. Optional, defaults to html.</p>
-
-<h2>Assertions</h2>
-
-<div class="highlight">
-<pre><span class="nf">assert:equal</span><span class="p">(</span><span class="nv">$actual</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">,</span> <span class="nv">$expected</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">)</span>
-
-<span class="nf">assert:not-equal</span><span class="p">(</span><span class="nv">$actual</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">,</span> <span class="nv">$expected</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">)</span>
-
-<span class="nf">assert:empty</span><span class="p">(</span><span class="nv">$actual</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">)</span>
-
-<span class="nf">assert:not-empty</span><span class="p">(</span><span class="nv">$actual</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">)</span>
-
-<span class="nf">assert:error</span><span class="p">(</span><span class="nv">$actual</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">,</span> <span class="nv">$expected-error-name</span> <span class="k">as</span> <span class="kt">xs:string</span><span class="p">)</span>
-
-<span class="nf">assert:true</span><span class="p">(</span><span class="nv">$actual</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">)</span>
-
-<span class="nf">assert:false</span><span class="p">(</span><span class="nv">$actual</span> <span class="k">as</span> <span class="k">item</span><span class="p">()</span><span class="o">*</span><span class="p">)</span>
-</pre>
-</div>
-
-
-<p>See <code>src/assertions.xqy</code> for the assertion definitions.</p>
-
-<h2>Setup and teardown functions</h2>
-
-<p><code>setup()</code> and <code>teardown()</code> are special function signatures. If defined, <code>setup()</code> is invoked before any tests, and in a different transaction so any database updates are visible to the tests. <code>teardown()</code> is executed after all tests in that module have finished.</p>
-
-<p>See <code>test/tests.xqy</code> for an example.</p>
-
-<h2>Ignoring Tests</h2>
-
-<p>Tests can be ignored by addding the prefix <code>IGNORE</code> to the test function name.</p>
-
-<div class="highlight">
-<pre><span class="k">declare</span> <span class="k">function</span> <span class="nf">IGNORE-this-test-will-be-ignored</span><span class="p">()</span>
-</pre>
-</div>
-
-
-<h2>MarkLogic Configuration</h2>
-
-<p>The app server user must belong to a role with the following execute privileges:
-<code>xdmp:eval</code>, <code>xdmp:filesystem-directory</code>, <code>xdmp:filesystem-file</code>, <code>xdmp:invoke</code>, <code>xdmp:xslt-invoke</code></p>
-
-<p>To work with modules stored in a modules database, the additional privileges are required:
-<code>xdmp:eval-in</code>
-And the user must have read rights to files in the modules db.</p>
-
-<p>Test modules must be written in XQuery version "1.0-ml" to be parsed correctly.</p>
-
-<h2>Acknowledgements</h2>
-
-<p>Thanks to Gunther Rademacher's <a href="http://www.bottlecaps.de/rex/">REx Parser Generator</a> and <a href="http://github.com/jpcs">John Snelson</a> for the XQuery 1.0-ml parser.</p>
-
-<p> </p>
-
-<h2>Screenshots</h2>
-
-<p><img src="https://github.com/robwhitby/xray/raw/master/screenshot-html.png" alt="screenshot of html output"><img src="https://github.com/robwhitby/xray/raw/master/screenshot-terminal.png" alt="screenshot of terminal output"></p>
-      </section>
-    </div>
-
-    
-  </body>
+  
+</body>
 </html>
