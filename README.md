@@ -54,7 +54,7 @@ declare function multiple-assert-example()
 **xray** will find and execute all the test cases defined in a directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
 
 * browser - `http://server:port/xray/`
-* command line - test-runner.sh is a sample shell script, edit the default vars (tested on OSX only).
+* command line - call `test-runner.sh` with your project parameters (see below, tested on OSX only).
 * invoke from xquery - import `src/xray.xqy` and call `xray:run-tests()`. See `index.xqy` for example.
 
 By default, xray looks for a directory called `test` at the same level as the `xray` directory:
@@ -69,7 +69,7 @@ project-root/
 To invoke tests stored elsewhere, set the directory parameter.
 
 
-## Command Line Parameters
+## Test Runner Command Line Parameters
 `-d` test directory path relative from the app server modules root. Optional, defaults to "test".
 
 `-m` regex match on module name. Optional, default to match all.
@@ -78,12 +78,14 @@ To invoke tests stored elsewhere, set the directory parameter.
 
 `-u` the url of the MarkLogic HTTP app server to connect to.
 
-## Command Line Shortcut
+## Test Runner Shortcut
 Rather than modify test-runner.sh or always pass in custom parameters, it's handy to create a small wrapper script in the project root, something like this:
 
 ```shell
 ./xray/test-runner.sh -u http://localhost:8765/xray/ -d testdir $*
 ```
+
+This still allows using `-t` and `-m` to select which tests to run but removes the need to constantly set the url and test directory.
 
 See `run-xray-tests.sh` for an example.
 
