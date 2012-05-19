@@ -64,7 +64,7 @@ declare function transform(
 {
   if ($format eq "text") then xdmp:set-response-content-type("text/plain") else ()
   ,
-  if ($format = ("html", "text"))
+  if ($format ne "xml")
   then 
     let $params := map:map()
     let $_ := map:put($params, "test-dir", $test-dir)

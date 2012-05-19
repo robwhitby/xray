@@ -10,6 +10,8 @@ declare function string-equality-example()
 };
 ```
 
+**xray** can output test results as HTML, XML, xUnit compatible XML, and plain text, so should be simple to integrate with your favourite build/ci server.
+
 ## Getting Started
 * Clone/copy/symlink xray into the root directory of your project e.g.<br/>
 `git clone git://github.com/robwhitby/xray.git`  

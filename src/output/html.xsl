@@ -93,7 +93,7 @@
                                             '&amp;modules=', encode-for-uri($module-pattern), 
                                             '&amp;tests=', encode-for-uri($test-pattern), 
                                             '&amp;format=')"/>
-      View results as <a href="{$qs}xml">xml</a>&#160;<a href="{$qs}text">text</a>
+      View results as <a href="{$qs}xml">xml</a>&#160;|&#160;<a href="{$qs}xunit">xUnit</a>&#160;|&#160;<a href="{$qs}text">text</a>
     </p>
   </xsl:template>
 
