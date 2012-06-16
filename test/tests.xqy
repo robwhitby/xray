@@ -1,6 +1,7 @@
 xquery version "1.0-ml";
 module namespace test = "http://github.com/robwhitby/xray/test";
 import module namespace assert = "http://github.com/robwhitby/xray/assertions" at "/xray/src/assertions.xqy";
+declare namespace xray = "http://github.com/robwhitby/xray";
 
 (: 
   optional setup function evaluated first
@@ -38,7 +39,7 @@ declare function should-be-able-to-test-number-equality()
 
 declare function should-be-able-to-test-string-equality()
 {
-  assert:equal("foo", "not foo so should fail")
+  assert:equal("foo", "bar", "not foo so should fail")
 };
 
 declare function should-be-able-to-return-multiple-asserts()
@@ -168,3 +169,15 @@ declare function should-be-able-to-test-complex-cts-query-equality()
     ))
   return assert:equal($query, $query)
 };
+
+declare function should-include-optional-assert-message-on-failure()
+{
+  let $msg := "$a equals $b"
+  let $assert-no-msg := assert:equal(1, 2)
+  let $assert-with-msg := assert:equal(1, 2, $msg)
+  return (
+    assert:equal($assert-no-msg/xray:message/fn:string(), ""),
+    assert:equal($assert-with-msg/xray:message/fn:string(), $msg)
+  )
+};
+

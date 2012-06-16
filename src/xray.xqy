@@ -65,14 +65,16 @@ declare function xray:test-response(
   $assertion as xs:string, 
   $passed as xs:boolean, 
   $actual as item()*, 
-  $expected as item()*
+  $expected as item()*,
+  $message as xs:string?
 ) as element(assert)
 {
   element assert {
     attribute test { $assertion },
     attribute result { if ($passed) then "passed" else "failed" },
     element actual { $actual },
-    element expected { $expected }
+    element expected { $expected },
+    element message { $message }
   }
 };
 

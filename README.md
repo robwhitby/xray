@@ -43,14 +43,23 @@ declare function multiple-assert-example()
   let $foo := some-module:foo()
   let $bar := "bar"
   return (
-    assert:not-empty($foo),
+    assert:not-empty($foo, "an optional failure help message"),
     assert:equal($foo, "foo"),
-    assert:not-equal($foo, $bar)
+    assert:not-equal($foo, $bar),
+    assert:true(return-true())
   )
 };
 
-(: more tests :)
+(: more tests ... :)
+
+
+(: private functions are not evaluated as tests :)
+declare private function return-true()
+{
+  fn:true()
+}
 ```
+
 
 ## Invoking Tests
 **xray** will find and execute all the test cases defined in a directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
@@ -94,21 +103,21 @@ See `run-xray-tests.sh` for an example.
 
 ## Assertions
 ```xquery
-assert:equal ($actual as item()*, $expected as item()*)
+assert:equal ($actual as item()*, $expected as item()*, [$message as xs:string?])
 
-assert:not-equal ($actual as item()*, $expected as item()*)
+assert:not-equal ($actual as item()*, $expected as item()*, [$message as xs:string?])
 
-assert:empty ($actual as item()*)
+assert:empty ($actual as item()*, [$message as xs:string?])
 
-assert:not-empty ($actual as item()*)
+assert:not-empty ($actual as item()*, [$message as xs:string?])
 
-assert:error ($actual as item()*, $expected-error-name as xs:string)
+assert:error ($actual as item()*, $expected-error-name as xs:string, [$message as xs:string?])
 
-assert:true ($actual as item()*)
+assert:true ($actual as item()*, [$message as xs:string?])
 
-assert:false ($actual as item()*)
+assert:false ($actual as item()*, [$message as xs:string?])
 ```
-See `src/assertions.xqy` for the assertion definitions.
+See `src/assertions.xqy` for the assertion definitions. All assertions are overloaded to accept an optional message parameter to provide more information of failures.
 
 ## Setup and teardown functions
 `setup()` and `teardown()` are special function signatures. If defined, `setup()` is invoked before any tests, and in a different transaction so any database updates are visible to the tests. `teardown()` is executed after all tests in that module have finished.
