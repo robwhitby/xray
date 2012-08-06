@@ -1,7 +1,12 @@
 xquery version "1.0-ml";
 module namespace test = "http://github.com/robwhitby/xray/test";
 import module namespace assert = "http://github.com/robwhitby/xray/assertions" at "/xray/src/assertions.xqy";
+
+import module namespace utils = "utils" at "utils.xqy";
+
 declare namespace xray = "http://github.com/robwhitby/xray";
+
+
 
 (: 
   optional setup function evaluated first
@@ -19,6 +24,7 @@ declare function teardown()
 };
 
 
+(: all public functions are evaluated by the test-runner :)
 declare function tests-can-contain-multiple-asserts()
 {
   let $foo := "foo"
@@ -30,8 +36,6 @@ declare function tests-can-contain-multiple-asserts()
   )
 };
 
-
-(: all public functions are evaluated by the test-runner :)
 declare function should-be-able-to-test-number-equality()
 {
   assert:equal(1, 1)
@@ -181,3 +185,8 @@ declare function should-include-optional-assert-message-on-failure()
   )
 };
 
+declare function should-be-able-to-import-module-using-relative-path() 
+{
+  let $foo := utils:upper("foo")
+  return assert:equal($foo, "FOO")
+};
