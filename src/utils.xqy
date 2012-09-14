@@ -29,7 +29,7 @@ declare function get-functions(
 {
   for $fn in utils:parse-xquery($module-path)//FunctionDecl
   let $qname := fn:QName($fn/QName/@uri, $fn/QName/@localname)
-  where $fn[fn:not(TOKEN = "private")]
+  where $fn[fn:not(preceding-sibling::Annotation/TOKEN = "private")]
   return xdmp:function($qname, relative-path($module-path))
 };
 
@@ -80,10 +80,8 @@ declare private function parse-xquery(
   return
     let $parsed := xqp:parse($source)
     return
-      if ($parsed/self::ERROR)
-      then fn:error(xs:QName("XRAY-PARSE"), "Error parsing module", $parsed)
-      else if ($TEST-NS-URI eq
-        $parsed/Module/LibraryModule/ModuleDecl/URILiteral/@value)
+      if ($parsed/self::ERROR) then fn:error(xs:QName("XRAY-PARSE"), "Error parsing module", $parsed)
+      else if ($TEST-NS-URI eq $parsed/Module/LibraryModule/ModuleDecl/URILiteral/@value)
       then $parsed
       else ()
 };
