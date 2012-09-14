@@ -4,13 +4,13 @@ module namespace utils = "http://github.com/robwhitby/xray/utils";
 
 declare namespace xray = "http://github.com/robwhitby/xray";
 declare namespace test = "http://github.com/robwhitby/xray/test";
-import module namespace parser = "XQueryML10" at "parsers/XQueryML10.xq";
+import module namespace xqp = "http://github.com/jpcs/xqueryparser.xq" at "parsers/xqueryparser.xq";
 import module namespace modules-fs = "http://github.com/robwhitby/xray/modules-fs" at "modules-filesystem.xqy";
 import module namespace modules-db = "http://github.com/robwhitby/xray/modules-db" at "modules-database.xqy";
 
 declare private variable $TEST-NS-URI := fn:namespace-uri-for-prefix("test", <test:x/>);
 declare private variable $USE-MODULES-DB := (xdmp:modules-database() ne 0);
-  
+
 
 declare function get-modules(
   $test-dir as xs:string,
@@ -28,11 +28,7 @@ declare function get-functions(
 ) as xdmp:function*
 {
   for $fn in utils:parse-xquery($module-path)//FunctionDecl
-  let $qname := xs:QName($fn/FunctionName/QName)
-  let $qname :=
-    if (fn:namespace-uri-from-QName($qname) eq "") 
-    then fn:QName($TEST-NS-URI, fn:local-name-from-QName($qname))
-    else $qname
+  let $qname := fn:QName($fn/QName/@uri, $fn/QName/@localname)
   where $fn[fn:not(TOKEN = "private")]
   return xdmp:function($qname, relative-path($module-path))
 };
@@ -55,17 +51,17 @@ declare function get-local-name(
 
 
 declare function transform(
-  $el as element(), 
-  $test-dir as xs:string, 
-  $module-pattern as xs:string?, 
-  $test-pattern as xs:string?, 
+  $el as element(),
+  $test-dir as xs:string,
+  $module-pattern as xs:string?,
+  $test-pattern as xs:string?,
   $format as xs:string
 ) as document-node()
 {
   if ($format eq "text") then xdmp:set-response-content-type("text/plain") else ()
   ,
   if ($format ne "xml")
-  then 
+  then
     let $params := map:map()
     let $_ := map:put($params, "test-dir", $test-dir)
     let $_ := map:put($params, "module-pattern", $module-pattern)
@@ -81,14 +77,15 @@ declare private function parse-xquery(
 {
   let $source as xs:string := get-module($module-path)
   where fn:contains($source, $TEST-NS-URI) (: preliminary check to speed things up a bit :)
-  return 
-    let $parsed := parser:parse-XQuery($source) 
-    return 
-      if (fn:contains($parsed//ModuleDecl//StringLiteral, $TEST-NS-URI))
-      then $parsed
-      else if ($parsed/self::ERROR)
+  return
+    let $parsed := xqp:parse($source)
+    return
+      if ($parsed/self::ERROR)
       then fn:error(xs:QName("XRAY-PARSE"), "Error parsing module", $parsed)
-      else () 
+      else if ($TEST-NS-URI eq
+        $parsed/Module/LibraryModule/ModuleDecl/URILiteral/@value)
+      then $parsed
+      else ()
 };
 
 
