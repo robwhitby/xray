@@ -185,6 +185,11 @@ declare function should-include-optional-assert-message-on-failure()
   )
 };
 
+declare function IGNORE-should-also-skip-this-test()
+{
+  fn:error((), "this test should be ignored!")
+};
+
 declare function should-be-able-to-import-module-using-relative-path() 
 {
   let $foo := utils:upper("foo")
