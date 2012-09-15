@@ -78,23 +78,23 @@ declare function assert:not-empty(
 
 declare function assert:error(
   $actual as item()*,
-  $expected-error-name as xs:string
+  $expected-error-code as xs:string
 ) as element(xray:assert)
 {
-  assert:error($actual, $expected-error-name, ())
+  assert:error($actual, $expected-error-code, ())
 };
 
 declare function assert:error(
   $actual as item()*,
-  $expected-error-name as xs:string,
+  $expected-error-code as xs:string,
   $message as xs:string?
 ) as element(xray:assert)
 {
-  let $actual-error-name :=
-    if ($actual instance of element(error:error)) then $actual/error:name/fn:string()
+  let $actual-error-code :=
+    if ($actual instance of element(error:error)) then $actual/error:code/fn:string()
     else ()
-  let $status := $actual-error-name = $expected-error-name
-  return xray:test-response("error", $status, ($actual-error-name, $actual)[1], $expected-error-name, $message)
+  let $status := $actual-error-code = $expected-error-code
+  return xray:test-response("error", $status, ($actual-error-code, $actual)[1], $expected-error-code, $message)
 };
 
 
