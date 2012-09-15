@@ -5,7 +5,7 @@
 				version="2.0"
 				exclude-result-prefixes="xray xdmp error">
 
-	<xsl:output method="xml" omit-xml-declaration="yes" indent="yes"/>
+	<xsl:output method="xml" omit-xml-declaration="no" indent="yes"/>
 
 	<xsl:param name="test-dir"/>
 	<xsl:param name="module-pattern"/>
