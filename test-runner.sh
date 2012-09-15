@@ -6,6 +6,7 @@
 #Default parameter values
 #####################################################################
 BASEURL=http://localhost:8889/xray/
+CREDENTIALS=
 DIR=test
 MODULES=
 TESTS=
@@ -19,21 +20,39 @@ CYELLOW=$(tput setaf 3)
 CDEFAULT=$(tput sgr0)       
 STATUS=0
 
-while getopts 'u:m:t:d:h' OPTION
+function usage() {
+      echo '
+usage: test-runner.sh [options...]
+Options:
+      -c <user:password>    Credential for HTTP authentication.
+      -d <path>             Look for tests in this directory.
+      -h                    This message.
+      -m <regex>            Test modules that match this pattern.
+      -t <regex>            Test functions that match this pattern.
+      -u <URL>              HTTP server location where index.xqy can be found.
+'
+      exit 1
+}
+
+while getopts 'c:d:hm:t:u:' OPTION
 do
   case $OPTION in
-    u) BASEURL="$OPTARG";;
+    c) CREDENTIAL="$OPTARG";;
+    d) DIR="$OPTARG";;
+    h) usage;;
     m) MODULES="$OPTARG";;
     t) TESTS="$OPTARG";;
-    d) DIR="$OPTARG";;
-    *)
-      echo "usage: test-runner.sh [-u URL of index.xqy] [-m module name regex] [-t test name regex] [-d test directory]"
-      exit 1;;
+    u) BASEURL="$OPTARG";;
+    *) usage;;
   esac
 done
 
 URL="$BASEURL?format=text&modules=$MODULES&tests=$TESTS&dir=$DIR"
-RESPONSE=$(curl --silent "$URL")
+CURL="curl --silent"
+if [ -n "$CREDENTIAL" ]; then
+    CURL="$CURL --anyauth --user $CREDENTIAL"
+fi
+RESPONSE=$($CURL "$URL")
 
 if [ "$RESPONSE" = "" ]; then
   echo "Error: No response from $URL"
@@ -56,3 +75,5 @@ echo -ne $CDEFAULT
 #echo -e "Time: $DIFF seconds"
 
 exit $STATUS
+
+# end

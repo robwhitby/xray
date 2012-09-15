@@ -8,7 +8,7 @@ declare namespace xray = "http://github.com/robwhitby/xray";
 
 
 
-(: 
+(:
   optional setup function evaluated first
   add any test docs used by the tests in this module
 :)
@@ -114,7 +114,7 @@ declare function
   assert:not-empty(fn:doc("doc1.xml"))
 };
 
-declare function 
+declare function
 test:check-doc1-is-searchable()
 {
   let $results := cts:search(fn:collection("test"), "foo")
@@ -123,18 +123,18 @@ test:check-doc1-is-searchable()
 
 declare private function test:should-not-run-private-function()
 {
-  fn:error((), "this test is private!")
+  fn:error((), 'XRAY-PRIVATE', "this test is private!")
 };
 
 declare function IGNORE-should-skip-this-test()
 {
-  fn:error((), "this test should be ignored!")
+  fn:error((), 'XRAY-PRIVATE', "this test should be ignored!")
 };
 
 (:
-declare function test:should-not-attempt-to-run-commented-out-function() 
+declare function test:should-not-attempt-to-run-commented-out-function()
 {
-  fn:error((), "this test is commented out!")
+  fn:error((), 'XRAY-PRIVATE', "this test is commented out!")
 };
 :)
 
@@ -166,7 +166,7 @@ declare function should-be-able-to-test-simple-cts-query-equality()
 
 declare function should-be-able-to-test-complex-cts-query-equality()
 {
-  let $query := 
+  let $query :=
     cts:or-query((
       cts:element-value-query(xs:QName("foo"), ("bar", "baz"), ("unstemmed", "case-insensitive"), 5),
       cts:word-query("foo", "stemmed", 10)
@@ -187,10 +187,10 @@ declare function should-include-optional-assert-message-on-failure()
 
 declare function IGNORE-should-also-skip-this-test()
 {
-  fn:error((), "this test should be ignored!")
+  fn:error((), 'XRAY-IGNORE', "this test should be ignored!")
 };
 
-declare function should-be-able-to-import-module-using-relative-path() 
+declare function should-be-able-to-import-module-using-relative-path()
 {
   let $foo := utils:upper("foo")
   return assert:equal($foo, "FOO")

@@ -5,5 +5,5 @@ import module namespace assert = "http://github.com/robwhitby/xray/assertions" a
 
 declare function should-not-include-modules-not-in-xray-test-namespace()
 {
-  fn:error((), "this test should not be invoked")
+  fn:error((), 'XRAY-IGNORE', "this test should not be invoked")
 };
