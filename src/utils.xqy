@@ -80,7 +80,7 @@ declare private function parse-xquery(
   return
     let $parsed := xqp:parse($source)
     return
-      if ($parsed/self::ERROR) then fn:error(xs:QName("XRAY-PARSE"), "Error parsing module", $parsed)
+      if ($parsed/self::ERROR) then fn:error((), "XRAY-PARSE", ("Error parsing module", $parsed))
       else if ($TEST-NS-URI eq $parsed/Module/LibraryModule/ModuleDecl/URILiteral/@value)
       then $parsed
       else ()
