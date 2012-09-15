@@ -54,7 +54,9 @@ declare function xray:run-test(
     attribute name { utils:get-local-name($fn) },
     attribute result {
       if ($ignore) then "ignored"
-      else if ($test/error:error or $test//descendant-or-self::assert[@result="failed"]) then "failed"
+      else if ($test instance of element(exception)
+        or $test instance of element(error:error)
+        or $test//descendant-or-self::assert[@result="failed"]) then "failed"
       else "passed"
     },
     attribute time { xdmp:elapsed-time() - $start },
@@ -99,16 +101,19 @@ declare private function xray:apply(
   $function as xdmp:function
 ) as item()*
 {
-  try {
-    xdmp:eval("
-      declare variable $fn as xdmp:function external;
-      declare option xdmp:update 'true';
-      xdmp:apply($fn)",
-      (fn:QName("","fn"), $function),
-      <options xmlns="xdmp:eval"><isolation>different-transaction</isolation></options>
-    )
-  }
-  catch($ex) { element exception { xray:error($ex)} }
+  (: The test tool itself should always run in timestamped mode. :)
+  if (xdmp:request-timestamp()) then ()
+  else fn:error((), 'UPDATE', 'Query must be read-only but contains updates!'),
+  (: Since we already have xdmp:function items we could use xdmp:apply here.
+   : But there is an inherent problem with xdmp:apply
+   : https://github.com/robwhitby/xray/issues/9
+   : It does not know if the function to be applied is an update or not.
+   : We do not want all tests to run as updates,
+   : because some queries check to see if they are run in timestamped mode.
+   : So we build a query string from the function data, and eval it.
+   :)
+  try { xdmp:eval(utils:query($function)) }
+  catch ($ex) { element exception { xray:error($ex)} }
 };
 
 
