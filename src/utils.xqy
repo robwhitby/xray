@@ -27,7 +27,7 @@ declare function get-functions(
   $module-path as xs:string
 ) as xdmp:function*
 {
-  for $fn in utils:parse-xquery($module-path)//FunctionDecl
+  for $fn in parse-xquery($module-path)//FunctionDecl
   let $qname := fn:QName($fn/QName/@uri, $fn/QName/@localname)
   where $fn[fn:not(preceding-sibling::Annotation/TOKEN = "private")]
   return xdmp:function($qname, relative-path($module-path))
@@ -71,6 +71,19 @@ declare function transform(
 };
 
 
+declare function query($fn as xdmp:function)
+as xs:string
+{
+  text {
+    'xquery version "1.0-ml";',
+    'import module namespace t=',
+    fn:concat('"', fn:namespace-uri-from-QName(xdmp:function-name($fn)), '"'),
+    'at', fn:concat('"', xdmp:function-module($fn), '";'),
+    fn:concat('t:', xdmp:function-name($fn), '()')
+  }
+};
+
+
 declare private function parse-xquery(
   $module-path as xs:string
 ) as element(XQuery)?
@@ -95,4 +108,3 @@ declare private function get-module(
   then modules-db:get-module($module-path)
   else modules-fs:get-module($module-path)
 };
-
