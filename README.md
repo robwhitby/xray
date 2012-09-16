@@ -81,19 +81,22 @@ To invoke tests stored elsewhere, set the directory parameter.
 
 
 ## Test Runner Command Line Parameters
-`-d` test directory path relative from the app server modules root. Optional, defaults to "test".
-
-`-m` regex match on module name. Optional, default to match all.
-
-`-t` regex match on test name. Optional, defaults to match all.
-
-`-u` the url of the MarkLogic HTTP app server to connect to.
+```shell
+usage: test-runner.sh [options...]
+Options:
+      -c <user:password>    Credential for HTTP authentication.
+      -d <path>             Look for tests in this directory.
+      -h                    This message.
+      -m <regex>            Test modules that match this pattern.
+      -t <regex>            Test functions that match this pattern.
+      -u <URL>              HTTP server location where index.xqy can be found.
+```
 
 ## Test Runner Shortcut
 Rather than modify test-runner.sh or always pass in custom parameters, it's handy to create a small wrapper script in the project root, something like this:
 
 ```shell
-./xray/test-runner.sh -u http://localhost:8765/xray/ -d testdir $*
+./xray/test-runner.sh -u http://localhost:8765/xray/ -c user:pass -d testdir $*
 ```
 
 This still allows using `-t` and `-m` to select which tests to run but removes the need to constantly set the url and test directory.
