@@ -2,51 +2,56 @@ xquery version "1.0-ml";
 
 module namespace xray = "http://github.com/robwhitby/xray";
 declare namespace test = "http://github.com/robwhitby/xray/test";
-import module namespace utils = "http://github.com/robwhitby/xray/utils" at "utils.xqy";
+
 declare default element namespace "http://github.com/robwhitby/xray";
+
+import module namespace utils = "http://github.com/robwhitby/xray/utils" at "utils.xqy";
+import module namespace cprof="com.blakeley.cprof" at "cprof.xqy" ;
 
 
 declare function xray:run-tests(
   $test-dir as xs:string,
   $module-pattern as xs:string?,
   $test-pattern as xs:string?,
-  $format as xs:string?
+  $format as xs:string?,
+  $profile as xs:boolean
 ) as item()*
 {
-  let $modules as xs:string* := utils:get-modules($test-dir, fn:string($module-pattern))
-  let $tests :=
+  utils:transform(
     element tests {
       attribute dir { $test-dir },
       attribute module-pattern { $module-pattern },
       attribute test-pattern { $test-pattern },
-      for $module in $modules
+      for $module in utils:get-modules($test-dir, fn:string($module-pattern))
       let $all-fns :=
         try { utils:get-functions($module) }
         catch ($ex) { xray:error($ex) }
       let $error := if ($all-fns instance of element(error:error)) then $all-fns else ()
-      let $test-fns := if (fn:exists($error)) then () else xray:test-functions($all-fns, $test-pattern)
+      let $test-fns :=
+        if (fn:exists($error)) then ()
+        else xray:test-functions($all-fns, $test-pattern)
       where fn:exists(($test-fns, $error))
-      return
-        element module {
-          attribute path { utils:relative-path($module) },
-          if (fn:exists($error)) then $error
-          else (
-            xray:apply($all-fns[utils:get-local-name(.) = "setup"]),
-            for $fn in $test-fns
-            return xray:run-test($fn),
-            xray:apply($all-fns[utils:get-local-name(.) = "teardown"])
-          )
-        }
-    }
-  return
-    utils:transform($tests, $test-dir, $module-pattern, $test-pattern, $format)
+      return element module {
+        attribute path { utils:relative-path($module) },
+        if (fn:exists($error)) then $error
+        else (
+          xray:apply($all-fns[utils:get-local-name(.) = "setup"]),
+          for $fn in $test-fns
+          return xray:run-test($fn, $profile),
+          xray:apply($all-fns[utils:get-local-name(.) = "teardown"])
+        )
+      }
+    },
+    $test-dir, $module-pattern, $test-pattern, $format, $profile)
 };
 
 
 declare function xray:run-test(
-  $fn as xdmp:function
+  $fn as xdmp:function,
+  $profile as xs:boolean
 ) as element(test)
 {
+  let $_ := if (fn:not($profile)) then () else (cprof:reset(), cprof:enable())
   let $start as xs:dayTimeDuration := xdmp:elapsed-time()
   let $ignore := fn:starts-with(utils:get-local-name($fn), "IGNORE")
   let $test := if ($ignore) then () else xray:apply($fn)
@@ -60,6 +65,7 @@ declare function xray:run-test(
       else "passed"
     },
     attribute time { xdmp:elapsed-time() - $start },
+    if ($profile) then cprof:report() else (),
     $test
   }
 };
@@ -112,7 +118,7 @@ declare private function xray:apply(
    : because some queries check to see if they are run in timestamped mode.
    : So we build a query string from the function data, and eval it.
    :)
-  try { xdmp:eval(utils:query($function)) }
+  try { cprof:eval(utils:query($function)) }
   catch ($ex) { element exception { xray:error($ex)} }
 };
 

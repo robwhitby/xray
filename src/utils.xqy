@@ -55,7 +55,8 @@ declare function transform(
   $test-dir as xs:string,
   $module-pattern as xs:string?,
   $test-pattern as xs:string?,
-  $format as xs:string
+  $format as xs:string,
+  $profile as xs:boolean
 ) as document-node()
 {
   if ($format eq "text") then xdmp:set-response-content-type("text/plain") else ()
@@ -63,8 +64,9 @@ declare function transform(
   if ($format ne "xml")
   then
     let $params := map:map()
-    let $_ := map:put($params, "test-dir", $test-dir)
     let $_ := map:put($params, "module-pattern", $module-pattern)
+    let $_ := map:put($params, "profile", $profile)
+    let $_ := map:put($params, "test-dir", $test-dir)
     let $_ := map:put($params, "test-pattern", $test-pattern)
     return xdmp:xslt-invoke(fn:concat("output/", $format, ".xsl"), $el, $params)
   else document { $el }
