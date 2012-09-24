@@ -2,13 +2,15 @@
                 xmlns:xray="http://github.com/robwhitby/xray"
                 xmlns:xdmp="http://marklogic.com/xdmp"
                 xmlns:error="http://marklogic.com/xdmp/error"
+                xmlns:prof="http://marklogic.com/xdmp/profile"
                 version="2.0"
                 exclude-result-prefixes="xray xdmp">
 
   <xsl:output method="html" omit-xml-declaration="yes" indent="yes"/>
 
-  <xsl:param name="test-dir"/>
   <xsl:param name="module-pattern"/>
+  <xsl:param name="profile"/>
+  <xsl:param name="test-dir"/>
   <xsl:param name="test-pattern"/>
 
   <xsl:template match="xray:tests">
@@ -17,7 +19,13 @@
       <head>
         <title>xray</title>
         <link rel="icon" type="image/png" href="favicon.ico" />
-        <xsl:call-template name="css"/>
+        <link rel="stylesheet" type="text/css" href="xray.css" />
+        <script language="JavaScript" type="text/javascript"
+                src="jquery-1.8.2.min.js">
+        </script>
+        <script language="JavaScript" type="text/javascript"
+                src="xray.js">
+        </script>
       </head>
       <body>
         <xsl:call-template name="header"/>
@@ -43,14 +51,83 @@
   </xsl:template>
 
   <xsl:template match="xray:test">
-    <h4 class="{@result}"><xsl:value-of select="@name, '--', upper-case(@result)"/></h4>
-    <xsl:call-template name="result"/>
+    <div class="xray-test">
+      <h4 class="{@result}">
+        <xsl:value-of select="@name, '--', upper-case(@result)"/>
+      </h4>
+      <xsl:choose>
+        <xsl:when test="@result = 'failed'">
+          <xsl:variable name="result">
+            <xsl:element name="{node-name(.)}">
+              <xsl:copy-of select="@*"/>
+              <xsl:copy-of select="node() except prof:report"/>
+            </xsl:element>
+          </xsl:variable>
+          <pre><xsl:value-of select="xdmp:quote($result)"/></pre>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="prof:report"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </div>
   </xsl:template>
 
-  <xsl:template name="result">
-    <xsl:if test="@result = 'failed'">
-      <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
-    </xsl:if>
+  <xsl:template match="prof:report">
+    <!-- TODO show or hide table on click -->
+    <div class="profile-report">
+      <xsl:variable
+          name="count"
+          select="count(prof:histogram/prof:expression/prof:count)"/>
+      <xsl:variable
+          name="elapsed"
+          select="data(prof:metadata/prof:overall-elapsed)"/>
+      <div class="profile-control">
+        <span class="profile-show">&#9660;</span>
+        <span class="profile-hide">&#9650;</span>
+        Profiled <xsl:value-of select="$count"/> expressions
+        in <xsl:value-of select="$elapsed"/>
+        (<xsl:value-of select="position()"/>).
+      </div>
+      <table class="profile-report">
+        <tr>
+          <th>location</th>
+          <th>expression</th>
+          <th>count</th>
+          <th title="Time for this expression">shallow %</th>
+          <th title="Time for this expression">shallow</th>
+          <th title="Time for this expression and sub-expressions">deep %</th>
+          <th title="Time for this expression and sub-expressions">deep</th>
+        </tr>
+        <xsl:for-each select="prof:histogram/prof:expression">
+          <xsl:sort select="prof:shallow-time" order="descending"/>
+          <tr>
+            <td class="source-location">
+              <xsl:value-of select="concat(prof:uri, ':', prof:line)"/>
+            </td>
+            <td class="source-expression">
+              <xsl:value-of select="prof:expr-source"/>
+            </td>
+            <td class="prof-count">
+              <xsl:value-of select="prof:count"/>
+            </td>
+            <td class="prof-shallow-percent">
+              <xsl:value-of
+                  select="round(100 * prof:shallow-time div $elapsed)"/>
+            </td>
+            <td class="prof-shallow-time">
+              <xsl:value-of select="prof:shallow-time"/>
+            </td>
+            <td class="prof-deep-percent">
+              <xsl:value-of
+                  select="round(100 * prof:deep-time div $elapsed)"/>
+            </td>
+            <td class="prof-deep-time">
+              <xsl:value-of select="prof:deep-time"/>
+            </td>
+          </tr>
+        </xsl:for-each>
+      </table>
+    </div>
   </xsl:template>
 
   <xsl:template name="header">
@@ -63,6 +140,7 @@
         <label for="test-pattern"><abbr title="regex match on test name">tests</abbr></label>
         <input type="text" name="tests" id="test-pattern" value="{$test-pattern}"/> 
         <input type="hidden" name="format" value="html"/>
+        <input type="hidden" name="profile" value="{$profile}"/>
         <button>run</button>
       </form>
   </xsl:template>
@@ -72,7 +150,7 @@
   </xsl:template>
 
   <xsl:template name="summary">
-    <p id="summary">  
+    <p id="summary">
       <xsl:attribute name="class">
         <xsl:choose>
             <xsl:when test="xray:module[xray:test/@result='failed' or error:error]">failed</xsl:when>
@@ -89,11 +167,14 @@
 
   <xsl:template name="format-links">
     <p>
-      <xsl:variable name="qs" select="concat('?dir=', $test-dir, 
-                                            '&amp;modules=', encode-for-uri($module-pattern), 
-                                            '&amp;tests=', encode-for-uri($test-pattern), 
-                                            '&amp;format=')"/>
-      View results as <a href="{$qs}xml">xml</a>&#160;|&#160;<a href="{$qs}xunit">xUnit</a>&#160;|&#160;<a href="{$qs}text">text</a>
+      <xsl:variable name="qs"
+                    select="concat('?dir=', $test-dir,
+                            '&amp;modules=', encode-for-uri($module-pattern),
+                            '&amp;profile=', $profile,
+                            '&amp;tests=', encode-for-uri($test-pattern),
+                            '&amp;format=')"/>
+      View results as
+      <a href="{$qs}xml">xml</a>&#160;|&#160;<a href="{$qs}xunit">xUnit</a>&#160;|&#160;<a href="{$qs}text">text</a>
     </p>
   </xsl:template>
 
@@ -112,37 +193,6 @@ declare function <span class="f">node-should-equal-foo</span> ()
     return <span class="f">assert:equal</span>(<span class="v">$node</span>, <span class="x">&lt;foo/&gt;</span>)
 };</pre>
     </div>
-  </xsl:template>
-
-  <xsl:template name="css">
-    <style type="text/css">
-      body { margin: 0 10px; }
-      body, input, button { font-family: "Courier New",Sans-serif; }
-      h1 { margin: 0 0 30px 0; }
-      h1 a:link, h1 a:visited, h1 a:hover, h1 a:active { 
-        padding: 10px 10px; 
-        text-decoration:none; color: #fff;
-        background-color: #000;
-        border: 1px solid #000;
-        text-shadow: #fff 1px 1px 15px;
-        -webkit-font-smoothing: antialiased;
-      }
-      h1 a:hover { color: #000; background-color: #fff; }
-      h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
-      h3 { background-color: #eee; }
-      label { padding-left: 10px; }
-      abbr, .abbr { border-bottom: 1px dotted #ccc; }
-      form { position: absolute; top: 10px; right: 10px; }
-      #summary { font-weight: bold; }
-      .module { border: 1px solid #ccc; margin: 10px 0; }
-      .failed { color: red; }
-      .ignored { color: orange; }
-      .passed { color: green; }
-      .code .s { color: red; }
-      .code .v { color: purple; }
-      .code .f { color: blue; }
-      .code .x { color: green; }
-    </style>
   </xsl:template>
 
 </xsl:stylesheet>
