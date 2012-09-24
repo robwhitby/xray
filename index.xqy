@@ -14,5 +14,9 @@ declare variable $tests as xs:string? := xdmp:get-request-field("tests");
 (: output format xml|html|text :)
 declare variable $format as xs:string := xdmp:get-request-field("format", "html");
 
+(: return profiler data? :)
+declare variable $profile as xs:boolean := xs:boolean(
+  xdmp:get-request-field("profile", "0"));
 
-xray:run-tests($dir, $modules, $tests, $format)
+
+xray:run-tests($dir, $modules, $tests, $format, $profile)

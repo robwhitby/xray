@@ -2,6 +2,7 @@
 				xmlns:xray="http://github.com/robwhitby/xray"
 				xmlns:xdmp="http://marklogic.com/xdmp"
 				xmlns:error="http://marklogic.com/xdmp/error"
+        xmlns:prof="http://marklogic.com/xdmp/profile"
 				version="2.0"
 				exclude-result-prefixes="xray xdmp error">
 
@@ -52,6 +53,8 @@
 	</xsl:template>
 
 	<xsl:template match="xray:assert"/>
+
+	<xsl:template match="prof:report"/>
 
 	<xsl:template match="error:error">
 		<error message="{error:message}">
