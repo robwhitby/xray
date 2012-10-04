@@ -7,8 +7,9 @@
 
   <xsl:output method="html" omit-xml-declaration="yes" indent="yes"/>
 
-  <xsl:param name="test-dir"/>
+  <xsl:param name="coverage-modules"/>
   <xsl:param name="module-pattern"/>
+  <xsl:param name="test-dir"/>
   <xsl:param name="test-pattern"/>
 
   <xsl:template match="xray:tests">
@@ -17,7 +18,7 @@
       <head>
         <title>xray</title>
         <link rel="icon" type="image/png" href="favicon.ico" />
-        <xsl:call-template name="css"/>
+        <link rel="stylesheet" type="text/css" href="xray.css" />
       </head>
       <body>
         <xsl:call-template name="header"/>
@@ -33,6 +34,40 @@
         <xsl:call-template name="format-links"/>
       </body>
     </html>
+  </xsl:template>
+
+  <xsl:template match="xray:coverage-summary">
+    <xsl:variable name="covered" select="@covered-count"/>
+    <xsl:variable name="wanted" select="@wanted-count"/>
+    <div class="coverage-summary">
+      <h3>
+        Code Coverage:
+        <xsl:value-of
+            select="concat(round(100 * $covered div $wanted), '%')"/>
+      </h3>
+      <ul>
+        <xsl:apply-templates/>
+      </ul>
+    </div>
+  </xsl:template>
+
+  <xsl:template match="xray:module-coverage">
+    <xsl:variable name="covered" select="xray:covered/@count"/>
+    <xsl:variable name="wanted" select="xray:wanted/@count"/>
+    <xsl:variable
+        name="link"
+        select="concat('coverage.xqy?module=', encode-for-uri(@uri),
+                '&amp;wanted=', encode-for-uri(xray:wanted/string()),
+                '&amp;covered=', encode-for-uri(xray:covered/string()),
+                '&amp;format=html')"/>
+    <div class="module-coverage">
+      <li class="module-coverage">
+        <a class="module-coverage" href="{ $link }">
+          <xsl:value-of select="@uri"/></a>:
+        <xsl:value-of
+            select="concat(round(100 * $covered div $wanted), '%')"/>
+      </li>
+    </div>
   </xsl:template>
 
   <xsl:template match="xray:module">
@@ -61,7 +96,7 @@
         <label for="module-pattern"><abbr title="regex match on module name">modules</abbr></label>
         <input type="text" name="modules" id="module-pattern" value="{$module-pattern}"/>
         <label for="test-pattern"><abbr title="regex match on test name">tests</abbr></label>
-        <input type="text" name="tests" id="test-pattern" value="{$test-pattern}"/> 
+        <input type="text" name="tests" id="test-pattern" value="{$test-pattern}"/>
         <input type="hidden" name="format" value="html"/>
         <button>run</button>
       </form>
@@ -72,7 +107,7 @@
   </xsl:template>
 
   <xsl:template name="summary">
-    <p id="summary">  
+    <p id="summary">
       <xsl:attribute name="class">
         <xsl:choose>
             <xsl:when test="xray:module[xray:test/@result='failed' or error:error]">failed</xsl:when>
@@ -89,9 +124,15 @@
 
   <xsl:template name="format-links">
     <p>
-      <xsl:variable name="qs" select="concat('?dir=', $test-dir, 
-                                            '&amp;modules=', encode-for-uri($module-pattern), 
-                                            '&amp;tests=', encode-for-uri($test-pattern), 
+      <xsl:variable name="qs-coverage-modules">
+        <xsl:for-each select="$coverage-modules">
+          <xsl:value-of select="concat('&amp;coverage-module=', encode-for-uri(.))" />
+        </xsl:for-each>
+      </xsl:variable>
+      <xsl:variable name="qs" select="concat('?dir=', $test-dir,
+                                            '&amp;modules=', encode-for-uri($module-pattern),
+                                            '&amp;tests=', encode-for-uri($test-pattern),
+                                            $qs-coverage-modules,
                                             '&amp;format=')"/>
       View results as <a href="{$qs}xml">xml</a>&#160;|&#160;<a href="{$qs}xunit">xUnit</a>&#160;|&#160;<a href="{$qs}text">text</a>
     </p>
@@ -112,37 +153,6 @@ declare function <span class="f">node-should-equal-foo</span> ()
     return <span class="f">assert:equal</span>(<span class="v">$node</span>, <span class="x">&lt;foo/&gt;</span>)
 };</pre>
     </div>
-  </xsl:template>
-
-  <xsl:template name="css">
-    <style type="text/css">
-      body { margin: 0 10px; }
-      body, input, button { font-family: "Courier New",Sans-serif; }
-      h1 { margin: 0 0 30px 0; }
-      h1 a:link, h1 a:visited, h1 a:hover, h1 a:active { 
-        padding: 10px 10px; 
-        text-decoration:none; color: #fff;
-        background-color: #000;
-        border: 1px solid #000;
-        text-shadow: #fff 1px 1px 15px;
-        -webkit-font-smoothing: antialiased;
-      }
-      h1 a:hover { color: #000; background-color: #fff; }
-      h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
-      h3 { background-color: #eee; }
-      label { padding-left: 10px; }
-      abbr, .abbr { border-bottom: 1px dotted #ccc; }
-      form { position: absolute; top: 10px; right: 10px; }
-      #summary { font-weight: bold; }
-      .module { border: 1px solid #ccc; margin: 10px 0; }
-      .failed { color: red; }
-      .ignored { color: orange; }
-      .passed { color: green; }
-      .code .s { color: red; }
-      .code .v { color: purple; }
-      .code .f { color: blue; }
-      .code .x { color: green; }
-    </style>
   </xsl:template>
 
 </xsl:stylesheet>
