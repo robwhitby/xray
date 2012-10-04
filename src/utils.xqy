@@ -4,6 +4,8 @@ module namespace utils = "http://github.com/robwhitby/xray/utils";
 
 declare namespace xray = "http://github.com/robwhitby/xray";
 declare namespace test = "http://github.com/robwhitby/xray/test";
+import module namespace cover = "http://github.com/robwhitby/xray/coverage"
+  at "coverage.xqy";
 import module namespace xqp = "http://github.com/jpcs/xqueryparser.xq" at "parsers/xqueryparser.xq";
 import module namespace modules-fs = "http://github.com/robwhitby/xray/modules-fs" at "modules-filesystem.xqy";
 import module namespace modules-db = "http://github.com/robwhitby/xray/modules-db" at "modules-database.xqy";
@@ -55,19 +57,28 @@ declare function transform(
   $test-dir as xs:string,
   $module-pattern as xs:string?,
   $test-pattern as xs:string?,
-  $format as xs:string
+  $format as xs:string,
+  $coverage-modules as xs:string*
 ) as document-node()
 {
-  if ($format eq "text") then xdmp:set-response-content-type("text/plain") else ()
+  if ($format eq "text") then xdmp:set-response-content-type("text/plain")
+  else ()
   ,
   if ($format ne "xml")
   then
     let $params := map:map()
-    let $_ := map:put($params, "test-dir", $test-dir)
+    let $_ := map:put($params, "coverage-modules", $coverage-modules)
     let $_ := map:put($params, "module-pattern", $module-pattern)
+    let $_ := map:put($params, "test-dir", $test-dir)
     let $_ := map:put($params, "test-pattern", $test-pattern)
-    return xdmp:xslt-invoke(fn:concat("output/", $format, ".xsl"), $el, $params)
-  else document { $el }
+    return xdmp:xslt-invoke(
+      fn:concat("output/", $format, ".xsl"),
+      if (fn:empty($coverage-modules) or $format eq 'xunit') then $el
+      else cover:transform($el),
+      $params)
+  else document {
+    if (fn:empty($coverage-modules)) then $el
+    else cover:transform($el) }
 };
 
 
@@ -100,11 +111,24 @@ declare private function parse-xquery(
 };
 
 
-declare private function get-module(
+declare function get-module(
+  $module-path as xs:string,
+  $is-absolute as xs:boolean
+) as xs:string
+{
+  if ($USE-MODULES-DB) then modules-db:get-module(
+    if ($is-absolute) then $module-path
+    else modules-db:resolve-path($module-path))
+  else modules-fs:get-module(
+    if ($is-absolute) then $module-path
+    else modules-fs:resolve-path($module-path))
+};
+
+declare function get-module(
   $module-path as xs:string
 ) as xs:string
 {
-  if ($USE-MODULES-DB)
-  then modules-db:get-module($module-path)
-  else modules-fs:get-module($module-path)
+  get-module($module-path, fn:true())
 };
+
+(: utils.xqy :)
