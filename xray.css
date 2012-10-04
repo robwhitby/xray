@@ -1,0 +1,57 @@
+/* xray.css */
+
+body { margin: 0 10px; }
+body, input, button { font-family: "Courier New",Sans-serif; }
+h1 { margin: 0 0 30px 0; }
+h1 a:link, h1 a:visited, h1 a:hover, h1 a:active {
+    padding: 10px 10px;
+    text-decoration:none; color: #fff;
+    background-color: #000;
+    border: 1px solid #000;
+    text-shadow: #fff 1px 1px 15px;
+    -webkit-font-smoothing: antialiased;
+}
+h1 a:hover { color: #000; background-color: #fff; }
+h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
+h3 { background-color: #eee; }
+label { padding-left: 10px; }
+abbr, .abbr { border-bottom: 1px dotted #ccc; }
+form { position: absolute; top: 10px; right: 10px; }
+#summary { font-weight: bold; }
+.module { border: 1px solid #ccc; margin: 10px 0; }
+.failed { color: red; }
+.ignored { color: orange; }
+.passed { color: green; }
+.code .s { color: red; }
+.code .v { color: purple; }
+.code .f { color: blue; }
+.code .x { color: green; }
+
+.coverage-summary {
+    border: 1px solid #ccc;
+    margin: 10px 0;
+}
+
+li.module-coverage {
+    list-style-type: none;
+}
+
+.source
+{
+    font-family: monospace, -moz-fixed !important;
+    white-space: pre;
+}
+
+.lineno
+{
+    background-color: #eee;
+    margin-left: 0;
+    margin-right: 0.25em;
+    float: left;
+    width: 3em;
+}
+
+.covered-line { background-color: green; }
+.wanted-line { background-color: red; }
+
+/* xray.css */

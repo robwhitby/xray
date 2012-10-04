@@ -1,5 +1,5 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		            xmlns:xray="http://github.com/robwhitby/xray"
+                xmlns:xray="http://github.com/robwhitby/xray"
                 xmlns:error="http://marklogic.com/xdmp/error"
                 version="2.0">
 
@@ -11,7 +11,28 @@
     <xsl:value-of select="', Failed', count(xray:module/xray:test[@result='failed'])" />
     <xsl:value-of select="', Ignored', count(xray:module/xray:test[@result='ignored'])" />
     <xsl:value-of select="', Errors', count(xray:module/error:error)" />
-    <xsl:value-of select="', Passed', count(xray:module/xray:test[@result='passed'])" /> 
+    <xsl:value-of select="', Passed', count(xray:module/xray:test[@result='passed'])" />
+  </xsl:template>
+
+  <xsl:template match="xray:coverage-summary">
+    <xsl:variable name="covered" select="@covered-count"/>
+    <xsl:variable name="wanted" select="@wanted-count"/>
+    <xsl:text>Code Coverage: </xsl:text>
+    <xsl:value-of
+        select="concat(round(100 * $covered div $wanted), '%')"/>
+    <xsl:text>&#10;</xsl:text>
+    <xsl:apply-templates/>
+  </xsl:template>
+
+  <xsl:template match="xray:module-coverage">
+    <xsl:variable name="covered" select="xray:covered/@count"/>
+    <xsl:variable name="wanted" select="xray:wanted/@count"/>
+    <xsl:text>-- </xsl:text>
+    <xsl:value-of select="@uri"/>
+    <xsl:text> -- </xsl:text>
+    <xsl:value-of
+        select="concat(round(100 * $covered div $wanted), '%')"/>
+    <xsl:text>&#10;</xsl:text>
   </xsl:template>
 
   <xsl:template match="xray:module">
