@@ -2,6 +2,7 @@
                 xmlns:xray="http://github.com/robwhitby/xray"
                 xmlns:xdmp="http://marklogic.com/xdmp"
                 xmlns:error="http://marklogic.com/xdmp/error"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema"
                 version="2.0"
                 exclude-result-prefixes="xray xdmp">
 
@@ -36,20 +37,31 @@
   </xsl:template>
 
   <xsl:template match="xray:module">
-    <div class="module">
-      <h3><xsl:value-of select="@path"/></h3>
+    <div class="module ok-{@passed + @ignored eq xs:double(@total) and @error = 0}">
+      <h3>
+        <a href="{xray:url(@path, (), 'html')}" title="run this module only">
+          <xsl:value-of select="@path"/>
+        </a>
+      </h3>
       <xsl:apply-templates/>
     </div>
   </xsl:template>
 
   <xsl:template match="xray:test">
-    <h4 class="{@result}"><xsl:value-of select="@name, '--', upper-case(@result)"/></h4>
+    <h4 class="{@result}">
+      <a href="{xray:url(../@path, @name, 'html')}" title="run this test only">
+        <xsl:value-of select="@name, '--', upper-case(@result)"/>
+      </a>
+    </h4>
     <xsl:call-template name="result"/>
   </xsl:template>
 
   <xsl:template name="result">
-    <xsl:if test="@result = ('failed','error')">
-      <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
+    <xsl:if test="@result = 'failed'">
+      <pre><xsl:value-of select="xdmp:quote(xray:assert[@result='failed'])"/></pre>
+    </xsl:if>
+    <xsl:if test="@result = 'error'">
+      <xsl:apply-templates select="xray:exception/error:error"/>
     </xsl:if>
   </xsl:template>
 
@@ -68,7 +80,13 @@
   </xsl:template>
 
   <xsl:template match="error:error">
-    <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
+    <xsl:if test="error:message/text()">
+      <pre><xsl:value-of select="error:message"/></pre>
+    </xsl:if>
+    <xsl:if test="error:format-string/text()">
+      <pre><xsl:value-of select="error:format-string"/></pre>
+    </xsl:if>
+    <pre class="error"><xsl:value-of select="xdmp:quote(.)"/></pre>
   </xsl:template>
 
   <xsl:template name="summary">
@@ -89,11 +107,12 @@
 
   <xsl:template name="format-links">
     <p>
-      <xsl:variable name="qs" select="concat('?dir=', $test-dir, 
-                                            '&amp;modules=', encode-for-uri($module-pattern), 
-                                            '&amp;tests=', encode-for-uri($test-pattern), 
-                                            '&amp;format=')"/>
-      View results as <a href="{$qs}xml">xml</a>&#160;|&#160;<a href="{$qs}xunit">xUnit</a>&#160;|&#160;<a href="{$qs}text">text</a>
+      View results as 
+      <a href="{xray:url($module-pattern, $test-pattern, 'xml')}">xml</a>
+      <xsl:text>&#160;|&#160;</xsl:text>
+      <a href="{xray:url($module-pattern, $test-pattern, 'xunit')}">xUnit</a>
+      <xsl:text>&#160;|&#160;</xsl:text>
+      <a href="{xray:url($module-pattern, $test-pattern, 'text')}">text</a>
     </p>
   </xsl:template>
 
@@ -114,6 +133,17 @@ declare function <span class="f">node-should-equal-foo</span> ()
     </div>
   </xsl:template>
 
+
+  <xsl:function name="xray:url" as="xs:string">
+    <xsl:param name="module" as="xs:string"/>
+    <xsl:param name="test" as="xs:string?"/>
+    <xsl:param name="format" as="xs:string?"/>
+    <xsl:value-of select="concat('?dir=', $test-dir, 
+                                '&amp;modules=', encode-for-uri($module), 
+                                '&amp;tests=', encode-for-uri($test), 
+                                '&amp;format=', $format)"/>
+  </xsl:function>
+
   <xsl:template name="css">
     <style type="text/css">
       body { margin: 0 10px; }
@@ -128,16 +158,25 @@ declare function <span class="f">node-should-equal-foo</span> ()
         -webkit-font-smoothing: antialiased;
       }
       h1 a:hover { color: #000; background-color: #fff; }
+      
       h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
-      h3 { background-color: #eee; }
+      h3 a { color: white; text-decoration: none; }
+      h3 a:hover { text-decoration: underline; }
+      .ok-true h3 { background-color: green; }
+      .ok-false h3 { background-color: red; }
+
       label { padding-left: 10px; }
       abbr, .abbr { border-bottom: 1px dotted #ccc; }
       form { position: absolute; top: 10px; right: 10px; }
       #summary { font-weight: bold; }
       .module { border: 1px solid #ccc; margin: 10px 0; }
-      .failed, .error { color: red; }
-      .ignored { color: orange; }
-      .passed { color: green; }
+      
+      h4 a { text-decoration: none;}
+      h4 a:hover { text-decoration: underline; }
+      .failed, .failed a, .error a { color: red; }
+      .ignored a { color: orange; }
+      .passed, .passed a { color: green; }
+
       .code .s { color: red; }
       .code .v { color: purple; }
       .code .f { color: blue; }

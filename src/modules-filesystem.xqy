@@ -15,7 +15,7 @@ declare function get-modules(
   let $fs-dir := fn:concat(xdmp:modules-root(), fn:replace($test-dir, "^[/\\]+", ""))
   where filesystem-directory-exists($fs-dir)
   return 
-    module-filenames($fs-dir)[fn:matches(fn:substring-after(., $fs-dir), fn:string($pattern))]
+    module-filenames($fs-dir)[fn:ends-with(., $pattern) or fn:matches(fn:substring-after(., $fs-dir), fn:string($pattern))]
 };
 
   

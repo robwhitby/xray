@@ -11,7 +11,7 @@ declare variable $modules as xs:string? := xdmp:get-request-field("modules");
 (: test name matcher regex :)
 declare variable $tests as xs:string? := xdmp:get-request-field("tests");
 
-(: output format xml|html|text :)
+(: output format xml|html|text|xunit :)
 declare variable $format as xs:string := xdmp:get-request-field("format", "html");
 
 

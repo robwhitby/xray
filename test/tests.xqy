@@ -118,7 +118,11 @@ declare function
 test:check-doc1-is-searchable()
 {
   let $results := cts:search(fn:collection("test"), "foo")
-  return assert:equal($results/doc1/fn:string(), "foo bar")
+  return (
+    assert:not-empty($results),
+    assert:true(fn:true()),
+    assert:equal($results/doc1/fn:string(), "foo bar")
+  )
 };
 
 declare private function test:should-not-run-private-function()
