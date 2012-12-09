@@ -114,17 +114,6 @@ declare function
   assert:not-empty(fn:doc("doc1.xml"))
 };
 
-declare function
-test:check-doc1-is-searchable()
-{
-  let $results := cts:search(fn:collection("test"), "foo")
-  return (
-    assert:not-empty($results),
-    assert:true(fn:true()),
-    assert:equal($results/doc1/fn:string(), "foo bar")
-  )
-};
-
 declare private function test:should-not-run-private-function()
 {
   fn:error((), 'XRAY-PRIVATE', "this test is private!")
