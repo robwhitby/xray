@@ -37,8 +37,15 @@
   </xsl:template>
 
   <xsl:template match="xray:module">
-    <div class="module ok-{@passed + @ignored eq xs:double(@total) and @error = 0}">
+    <div class="module">
       <h3>
+        <xsl:attribute name="class">
+          <xsl:choose>
+              <xsl:when test="@failed ne '0' or @error ne '0'">failed</xsl:when>
+              <xsl:when test="@ignored ne '0'">ignored</xsl:when>
+              <xsl:otherwise>passed</xsl:otherwise>
+          </xsl:choose>
+        </xsl:attribute>
         <a href="{xray:url(@path, (), 'html')}" title="run this module only">
           <xsl:value-of select="@path"/>
         </a>
@@ -94,6 +101,7 @@
       <xsl:attribute name="class">
         <xsl:choose>
             <xsl:when test="xray:module[xray:test/@result = ('failed','error')]">failed</xsl:when>
+            <xsl:when test="xray:module[xray:test/@result = 'ignored']">ignored</xsl:when>
             <xsl:otherwise>passed</xsl:otherwise>
         </xsl:choose>
       </xsl:attribute>
@@ -147,40 +155,45 @@ declare function <span class="f">node-should-equal-foo</span> ()
   <xsl:template name="css">
     <style type="text/css">
       body { margin: 0 10px; }
-      body, input, button { font-family: "Courier New",Sans-serif; }
+      body, input, button { font-family: "Courier New", Sans-serif; }
+
       h1 { margin: 0 0 30px 0; }
-      h1 a:link, h1 a:visited, h1 a:hover, h1 a:active { 
-        padding: 10px 10px; 
-        text-decoration:none; color: #fff;
+      h1 a:link, h1 a:visited, h1 a:hover, h1 a:active {
+        padding: 10px 10px;
+        text-decoration:none;
+        color: #fff;
         background-color: #000;
         border: 1px solid #000;
         text-shadow: #fff 1px 1px 15px;
         -webkit-font-smoothing: antialiased;
       }
       h1 a:hover { color: #000; background-color: #fff; }
-      
+
       h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
+      h3 { background-color: #eee; }
+      h3.passed { background-color: #090; }
+      h3.failed, h3.error { background-color: #d00; }
+      h3.ignored { background-color: #f80; }
       h3 a { color: white; text-decoration: none; }
       h3 a:hover { text-decoration: underline; }
-      .ok-true h3 { background-color: green; }
-      .ok-false h3 { background-color: red; }
+      h4 a { text-decoration: none; }
+      h4 a:hover { text-decoration: underline; }
+
+      p.failed, h4.failed a { color: #d00; }
+      p.error, h4.error a { color: #d00; }
+      p.ignored, h4.ignored a { color: #f80; }
+      p.passed, h4.passed a { color: #090; }
 
       label { padding-left: 10px; }
       abbr, .abbr { border-bottom: 1px dotted #ccc; }
       form { position: absolute; top: 10px; right: 10px; }
       #summary { font-weight: bold; }
-      .module { border: 1px solid #ccc; margin: 10px 0; }
-      
-      h4 a { text-decoration: none;}
-      h4 a:hover { text-decoration: underline; }
-      .failed, .failed a, .error a { color: red; }
-      .ignored a { color: orange; }
-      .passed, .passed a { color: green; }
+      div.module { border: 1px solid #ccc; margin: 10px 0; }
 
-      .code .s { color: red; }
+      .code .s { color: #d00; }
       .code .v { color: purple; }
       .code .f { color: blue; }
-      .code .x { color: green; }
+      .code .x { color: #090; }
     </style>
   </xsl:template>
 

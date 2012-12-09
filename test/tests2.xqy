@@ -9,6 +9,11 @@ declare function check-doc1-not-loaded()
   assert:empty(fn:doc("doc1.xml"))
 };
 
+declare function IGNORE-foo()
+{
+  assert:true(fn:true())
+};
+
 declare function should-be-able-to-import-module-using-root-relative-path() 
 {
   let $foo := utils:upper("foo")

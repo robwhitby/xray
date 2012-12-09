@@ -89,7 +89,7 @@ declare private function parse-xquery(
 ) as element(XQuery)?
 {
   let $source as xs:string := get-module($module-path)
-  where fn:contains($source, $TEST-NS-URI) (: preliminary check to speed things up a bit :)
+  where fn:contains($source, $TEST-NS-URI) (: only parse test modules :)
   return
     let $parsed := xqp:parse($source)
     return
