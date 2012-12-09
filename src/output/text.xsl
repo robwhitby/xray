@@ -21,7 +21,7 @@
 
   <xsl:template match="xray:test">
     <xsl:value-of select="'--', @name, '--', upper-case(@result), '&#10;'"/>
-    <xsl:apply-templates select="xray:assert"/>
+    <xsl:apply-templates/>
   </xsl:template>
 
   <xsl:template match="error:error">

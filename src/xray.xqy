@@ -125,7 +125,7 @@ declare private function xray:apply(
    : So we build a query string from the function data, and eval it.
    :)
   try { xdmp:eval(utils:query($function)) }
-  catch ($ex) { element exception { xray:error($ex)} }
+  catch ($ex) { xray:error($ex) }
 };
 
 

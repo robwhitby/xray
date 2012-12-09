@@ -60,15 +60,11 @@
         <xsl:value-of select="@name, '--', upper-case(@result)"/>
       </a>
     </h4>
-    <xsl:call-template name="result"/>
-  </xsl:template>
-
-  <xsl:template name="result">
     <xsl:if test="@result = 'failed'">
       <pre><xsl:value-of select="xdmp:quote(xray:assert[@result='failed'])"/></pre>
     </xsl:if>
     <xsl:if test="@result = 'error'">
-      <xsl:apply-templates select="xray:exception/error:error"/>
+      <xsl:apply-templates/>
     </xsl:if>
   </xsl:template>
 
