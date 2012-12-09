@@ -10,7 +10,7 @@
     <xsl:value-of select="'Finished: Total', count(xray:module/xray:test)" />
     <xsl:value-of select="', Failed', count(xray:module/xray:test[@result='failed'])" />
     <xsl:value-of select="', Ignored', count(xray:module/xray:test[@result='ignored'])" />
-    <xsl:value-of select="', Errors', count(xray:module/error:error)" />
+    <xsl:value-of select="', Errors', count(xray:module/xray:test[@result='error'])" />
     <xsl:value-of select="', Passed', count(xray:module/xray:test[@result='passed'])" /> 
   </xsl:template>
 

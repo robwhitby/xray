@@ -65,6 +65,7 @@ while read -r LINE; do
     *PASSED) echo -ne $CGREEN;;
     *IGNORED) echo -ne $CYELLOW;;
     *FAILED) STATUS=1; echo -ne $CRED;;
+    *ERROR) STATUS=1; echo -ne $CRED;;
     Finished*) echo -ne $CDEFAULT;;
   esac
   echo $LINE

@@ -29,13 +29,26 @@ declare function xray:run-tests(
       return
         element module {
           attribute path { utils:relative-path($module) },
-          if (fn:exists($error)) then $error
-          else (
-            xray:apply($all-fns[utils:get-local-name(.) = "setup"]),
-            for $fn in $test-fns
-            return xray:run-test($fn),
-            xray:apply($all-fns[utils:get-local-name(.) = "teardown"])
+          if (fn:exists($error)) then (
+            attribute total { 0 },
+            attribute passed { 0 },
+            attribute ignored { 0 },
+            attribute failed { 0 },
+            attribute error { 1 },
+            $error
           )
+          else
+            let $setup := xray:apply($all-fns[utils:get-local-name(.) = "setup"])
+            let $results := xray:run-test($test-fns)
+            let $teardown := xray:apply($all-fns[utils:get-local-name(.) = "teardown"])
+            return (
+              attribute total { fn:count($results) },
+              attribute passed { fn:count($results[@result="passed"]) },
+              attribute ignored { fn:count($results[@result="ignored"]) },
+              attribute failed { fn:count($results[@result="failed"]) },
+              attribute error { fn:count($results[@result="error"]) },
+              $results
+            )
         }
     }
   return
@@ -54,9 +67,8 @@ declare function xray:run-test(
     attribute name { utils:get-local-name($fn) },
     attribute result {
       if ($ignore) then "ignored"
-      else if ($test instance of element(exception)
-        or $test instance of element(error:error)
-        or $test//descendant-or-self::assert[@result="failed"]) then "failed"
+      else if ($test instance of element(exception) or $test instance of element(error:error)) then "error"
+      else if ($test//descendant-or-self::assert[@result="failed"]) then "failed"
       else "passed"
     },
     attribute time { xdmp:elapsed-time() - $start },
@@ -65,7 +77,7 @@ declare function xray:run-test(
 };
 
 
-declare function xray:test-response(
+declare function xray:assert-response(
   $assertion as xs:string,
   $passed as xs:boolean,
   $actual as item()*,

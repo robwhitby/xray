@@ -48,7 +48,7 @@
   </xsl:template>
 
   <xsl:template name="result">
-    <xsl:if test="@result = 'failed'">
+    <xsl:if test="@result = ('failed','error')">
       <pre><xsl:value-of select="xdmp:quote(.)"/></pre>
     </xsl:if>
   </xsl:template>
@@ -75,14 +75,14 @@
     <p id="summary">  
       <xsl:attribute name="class">
         <xsl:choose>
-            <xsl:when test="xray:module[xray:test/@result='failed' or error:error]">failed</xsl:when>
+            <xsl:when test="xray:module[xray:test/@result = ('failed','error')]">failed</xsl:when>
             <xsl:otherwise>passed</xsl:otherwise>
         </xsl:choose>
       </xsl:attribute>
       <xsl:value-of select="'Finished: Total', count(xray:module/xray:test)" />
       <xsl:value-of select="', Failed', count(xray:module/xray:test[@result='failed'])" />
       <xsl:value-of select="', Ignored', count(xray:module/xray:test[@result='ignored'])" />
-      <xsl:value-of select="', Errors', count(xray:module/error:error)" />
+      <xsl:value-of select="', Errors', count(xray:module/xray:test[@result='error'])" />
       <xsl:value-of select="', Passed', count(xray:module/xray:test[@result='passed'])" />
     </p>
   </xsl:template>
@@ -135,7 +135,7 @@ declare function <span class="f">node-should-equal-foo</span> ()
       form { position: absolute; top: 10px; right: 10px; }
       #summary { font-weight: bold; }
       .module { border: 1px solid #ccc; margin: 10px 0; }
-      .failed { color: red; }
+      .failed, .error { color: red; }
       .ignored { color: orange; }
       .passed { color: green; }
       .code .s { color: red; }
