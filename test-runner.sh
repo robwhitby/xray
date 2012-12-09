@@ -21,7 +21,7 @@ CDEFAULT=$(tput sgr0)
 STATUS=0
 
 function usage() {
-      echo '
+      printf '
 usage: test-runner.sh [options...]
 Options:
       -c <user:password>    Credential for HTTP authentication.
@@ -61,20 +61,17 @@ fi
 
 while read -r LINE; do
   case $LINE in
-    Module*) echo -ne $CDEFAULT;;
-    *PASSED) echo -ne $CGREEN;;
-    *IGNORED) echo -ne $CYELLOW;;
-    *FAILED) STATUS=1; echo -ne $CRED;;
-    *ERROR) STATUS=1; echo -ne $CRED;;
-    Finished*) echo -ne $CDEFAULT;;
+    Module*) printf $CDEFAULT;;
+    *PASSED) printf $CGREEN;;
+    *IGNORED) printf $CYELLOW;;
+    *FAILED) STATUS=1; printf $CRED;;
+    *ERROR) STATUS=1; printf $CRED;;
+    Finished*) printf $CDEFAULT;;
   esac
   echo $LINE
 done <<< "$RESPONSE"
 
 DIFF=$(( $(date +%s) - $START ))
-echo -ne $CDEFAULT
-#echo -e "Time: $DIFF seconds"
+printf $CDEFAULT
 
 exit $STATUS
-
-# end
