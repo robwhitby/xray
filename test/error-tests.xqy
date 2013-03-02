@@ -14,7 +14,10 @@ declare private function something-that-errors() {
 declare function should-be-able-to-assert-error-code()
 {
   let $actual := try { something-that-errors() } catch ($ex) { $ex }
-  return assert:error($actual, "MY-ERROR")
+  return (
+    assert:error($actual, "MY-ERROR"),
+    assert:equal($actual/error:data/fn:string(), "something went wrong")
+  )
 };
 
 
