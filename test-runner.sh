@@ -69,7 +69,7 @@ while read -r LINE; do
     *IGNORED) printf $CYELLOW;;
     *FAILED) STATUS=1; printf $CRED;;
     *ERROR) STATUS=1; printf $CRED;;
-    Finished*) printf $CDEFAULT;;
+    Finished*) echo && if [ $STATUS -eq 1 ]; then printf $CRED; else printf $CGREEN; fi;;
   esac
   echo $LINE
 done <<< "$RESPONSE"
