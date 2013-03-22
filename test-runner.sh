@@ -75,6 +75,8 @@ while read -r LINE; do
 done <<< "$RESPONSE"
 
 DIFF=$(( $(date +%s) - $START ))
-printf $CDEFAULT
+if [ $FORMAT == "text" ]; then
+  printf $CDEFAULT
+fi
 
 exit $STATUS
