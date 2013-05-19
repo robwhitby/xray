@@ -19,7 +19,7 @@ declare private variable $test-docs :=
     </doc>
   </docs>;
 
-declare %test:setup function setup()
+declare %test:setup function setup1()
 {
   for $doc in $test-docs/doc
   return xdmp:document-insert($doc/@uri, $doc/node(), (), "xray-test")
@@ -31,13 +31,22 @@ declare %test:teardown function teardown()
   xdmp:collection-delete("xray-test")
 };
 
-
-declare %test:case function check-docs-loaded() {
-  for $uri in $test-docs/doc/@uri/fn:string()
-  return assert:not-empty(fn:doc($uri))
+declare %test:teardown function teardown2()
+{
+  xdmp:collection-delete("xray-test2")
 };
 
-declare %test:case function check-xpath-doc() {
-  assert:equal(fn:count(fn:collection("xray-test")/root/test), 2)
+
+(: can have multiple setup or teardown functions, not sure why you'd want to though :)
+declare %test:setup function setup2()
+{
+  for $doc in $test-docs/doc
+  return xdmp:document-insert("setup2/" || $doc/@uri , $doc/node(), (), "xray-test2")
+};
+
+
+declare %test:case function check-both-setups-ran() {
+  assert:equal(fn:count(fn:collection("xray-test")/root/test), 2),
+  assert:equal(fn:count(fn:collection("xray-test2")/root/test), 2)
 };
 

@@ -35,17 +35,3 @@ declare function get-modules(
   ),
   $eval-options)
 };
-
-
-declare function get-module(
-  $module-path as xs:string
-) as xs:string 
-{
-  xdmp:eval('
-    xquery version "1.0-ml";
-    declare variable $uri as xs:string external;
-    fn:doc($uri)
-  ', 
-  (xs:QName("uri"), $module-path),
-  $eval-options)
-};

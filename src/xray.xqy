@@ -2,19 +2,19 @@ xquery version "1.0-ml";
 
 module namespace xray = "http://github.com/robwhitby/xray";
 declare namespace test = "http://github.com/robwhitby/xray/test";
-import module namespace utils = "http://github.com/robwhitby/xray/utils" at "utils.xqy";
+import module namespace modules = "http://github.com/robwhitby/xray/modules" at "modules.xqy";
 declare default element namespace "http://github.com/robwhitby/xray";
 
-declare variable $XRAY-VERSION := "1.1";
+declare variable $XRAY-VERSION := "2.0";
 
-declare function xray:run-tests(
+declare function run-tests(
   $test-dir as xs:string,
   $module-pattern as xs:string?,
   $test-pattern as xs:string?,
   $format as xs:string?
 ) as item()*
 {
-  let $modules as xs:string* := utils:get-modules($test-dir, fn:string($module-pattern))
+  let $modules as xs:string* := modules:get-modules($test-dir, fn:string($module-pattern))
   let $tests :=
     element tests {
       attribute dir { $test-dir },
@@ -22,64 +22,57 @@ declare function xray:run-tests(
       attribute test-pattern { $test-pattern },
       attribute xray-version { $XRAY-VERSION },
       for $module in $modules
-      let $all-fns :=
-        try { utils:get-functions($module) }
-        catch ($ex) { xray:error($ex) }
-      let $error := if ($all-fns instance of element(error:error)) then $all-fns else ()
-      let $test-fns := if (fn:exists($error)) then () else xray:test-functions($all-fns, $test-pattern)
-      where fn:exists(($test-fns, $error))
+      let $results := run-module($module)
+      where fn:exists($results)
       return
         element module {
-          attribute path { utils:relative-path($module) },
-          if (fn:exists($error)) then (
+          attribute path { $module },
+          if ($results instance of element(error:error)) then (
             attribute total { 0 },
             attribute passed { 0 },
             attribute ignored { 0 },
             attribute failed { 0 },
             attribute error { 1 },
-            $error
+            $results
           )
-          else
-            let $setup := xray:apply($all-fns[utils:get-local-name(.) = "setup"])
-            let $results := xray:run-test($test-fns)
-            let $teardown := xray:apply($all-fns[utils:get-local-name(.) = "teardown"])
-            return (
-              attribute total { fn:count($results) },
-              attribute passed { fn:count($results[@result="passed"]) },
-              attribute ignored { fn:count($results[@result="ignored"]) },
-              attribute failed { fn:count($results[@result="failed"]) },
-              attribute error { fn:count($results[@result="error"]) },
-              $results
-            )
+          else (
+            attribute total { fn:count($results) },
+            attribute passed { fn:count($results[@result="passed"]) },
+            attribute ignored { fn:count($results[@result="ignored"]) },
+            attribute failed { fn:count($results[@result="failed"]) },
+            attribute error { fn:count($results[@result="error"]) },
+            $results
+          )
         }
     }
   return
-    utils:transform($tests, $test-dir, $module-pattern, $test-pattern, $format)
+    xray:transform($tests, $test-dir, $module-pattern, $test-pattern, $format)
 };
 
 
-declare function xray:run-test(
-  $fn as xdmp:function
+declare function run-test(
+  $fn as function(*),
+  $path as xs:string
 ) as element(test)
 {
-  let $start as xs:dayTimeDuration := xdmp:elapsed-time()
-  let $ignore := fn:starts-with(utils:get-local-name($fn), "IGNORE")
-  let $test := if ($ignore) then () else xray:apply($fn)
+  let $start-time as xs:dayTimeDuration := xdmp:elapsed-time()
+  let $ignore := has-test-annotation($fn, "ignore")
+  let $test := if ($ignore) then () else xray:apply($fn, $path)
   return element test {
-    attribute name { utils:get-local-name($fn) },
+    attribute name { fn-local-name($fn) },
     attribute result {
       if ($ignore) then "ignored"
       else if ($test instance of element(exception) or $test instance of element(error:error)) then "error"
       else if ($test//descendant-or-self::assert[@result="failed"]) then "failed"
       else "passed"
     },
-    attribute time { xdmp:elapsed-time() - $start },
+    attribute time { xdmp:elapsed-time() - $start-time },
     $test
   }
 };
 
 
-declare function xray:assert-response(
+declare function assert-response(
   $assertion as xs:string,
   $passed as xs:boolean,
   $actual as item()*,
@@ -97,28 +90,15 @@ declare function xray:assert-response(
 };
 
 
-declare private function xray:test-functions(
-  $functions as xdmp:function*,
-  $pattern as xs:string?
-) as xdmp:function*
-{
-  for $fn in $functions
-  let $name := utils:get-local-name($fn)
-  where
-    fn:matches($name, fn:string($pattern))
-    and fn:not($name = ("setup", "teardown"))
-  return $fn
-};
-
-
-declare private function xray:apply(
-  $function as xdmp:function
+declare private function apply(
+  $fn as function(*),
+  $path as xs:string
 ) as item()*
 {
   (: The test tool itself should always run in timestamped mode. :)
   if (xdmp:request-timestamp()) then ()
-  else fn:error((), 'UPDATE', 'Query must be read-only but contains updates!'),
-  (: Since we already have xdmp:function items we could use xdmp:apply here.
+  else fn:error((), "UPDATE", "Query must be read-only but contains updates"),
+  (: Since we already have a function item we could use $fn() here.
    : But there is an inherent problem with xdmp:apply
    : https://github.com/robwhitby/xray/issues/9
    : It does not know if the function to be applied is an update or not.
@@ -126,14 +106,78 @@ declare private function xray:apply(
    : because some queries check to see if they are run in timestamped mode.
    : So we build a query string from the function data, and eval it.
    :)
-  try { xdmp:eval(utils:query($function)) }
-  catch ($ex) { xray:error($ex) }
+  try {
+    xdmp:eval('
+      xquery version "1.0-ml";
+      import module namespace test = "http://github.com/robwhitby/xray/test" at "' || $path || '";
+      test:' || fn-local-name($fn) || '()
+    ')
+  }
+  catch * { $err:additional }
 };
 
 
-declare private function xray:error(
-  $ex as element(error:error)
-) as element(error:error)
+declare private function transform(
+  $el as element(),
+  $test-dir as xs:string,
+  $module-pattern as xs:string?,
+  $test-pattern as xs:string?,
+  $format as xs:string
+) as document-node()
 {
-  $ex
+  if ($format eq "text") then xdmp:set-response-content-type("text/plain") else (),
+  if ($format ne "xml")
+  then
+    let $params := map:map()
+    let $_ := map:put($params, "test-dir", $test-dir)
+    let $_ := map:put($params, "module-pattern", $module-pattern)
+    let $_ := map:put($params, "test-pattern", $test-pattern)
+    return xdmp:xslt-invoke(fn:concat("output/", $format, ".xsl"), $el, $params)
+  else document { $el }
+};
+
+
+declare function run-module(
+  $path as xs:string
+) as element()*
+{
+  try {
+    xdmp:eval('
+      xquery version "1.0-ml";
+      import module namespace xray = "http://github.com/robwhitby/xray" at "/xray/src/xray.xqy";
+      import module namespace test = "http://github.com/robwhitby/xray/test" at "' || $path || '";
+      xray:run-module-tests("' || $path || '")
+    ')
+  }
+  catch err:XPST0003 { $err:additional } (: syntax error in module :)
+  catch * { () } (: ignore other errors, e.g. module not in test ns :)
+};
+
+
+declare function run-module-tests(
+  $path as xs:string
+) as element()*
+{
+  let $fns := xdmp:functions()[has-test-annotation(., ("case", "ignore", "setup", "teardown"))]
+  return (
+    apply($fns[has-test-annotation(., "setup")], $path),
+    run-test($fns[has-test-annotation(., "case") or has-test-annotation(., "ignore")], $path),
+    apply($fns[has-test-annotation(., "teardown")], $path)
+  )
+};
+
+declare function has-test-annotation(
+  $fn as function(*),
+  $name as xs:string
+) as xs:boolean
+{
+  fn:exists(xdmp:annotation($fn, xs:QName("test:" || $name)))
+};
+
+
+declare private function fn-local-name(
+  $fn as function(*)
+) as xs:string
+{
+  fn:string(fn:local-name-from-QName(xdmp:function-name($fn)))
 };

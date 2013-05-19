@@ -1,13 +1,14 @@
 xquery version "1.0-ml";
+
 module namespace test = "http://github.com/robwhitby/xray/test";
 import module namespace assert = "http://github.com/robwhitby/xray/assertions" at "/xray/src/assertions.xqy";
-declare namespace xray = "http://github.com/robwhitby/xray";
 
+declare namespace xray = "http://github.com/robwhitby/xray";
 import module namespace utils = "utils" at "utils.xqy";
 
 
 (: all public functions are evaluated by the test-runner :)
-declare function tests-can-contain-multiple-asserts()
+declare %test:case function tests-can-contain-multiple-asserts()
 {
   let $foo := "foo"
   let $bar := "bar"
@@ -18,29 +19,29 @@ declare function tests-can-contain-multiple-asserts()
   )
 };
 
-declare function should-be-able-to-test-number-equality()
+declare %test:case function should-be-able-to-test-number-equality()
 {
   assert:equal(1, 1)
 };
 
-declare function should-be-able-to-test-string-equality()
+declare %test:case function should-be-able-to-test-string-equality()
 {
   assert:equal("foo", "bar", "not foo so should fail")
 };
 
-declare function should-be-able-to-return-multiple-asserts()
+declare %test:case function should-be-able-to-return-multiple-asserts()
 {
   assert:equal(0.5, 0.5),
   assert:equal("bar ", "bar ")
 };
 
-declare function should-be-able-to-test-string-inequality()
+declare %test:case function should-be-able-to-test-string-inequality()
 {
   assert:not-equal("foo", "bar"),
   assert:not-equal("foo", "Foo")
 };
 
-declare function should-be-able-to-test-xml-equality()
+declare %test:case function should-be-able-to-test-xml-equality()
 {
   assert:equal(
     <test><p>para 1</p><p>para 2</p></test>,
@@ -48,7 +49,7 @@ declare function should-be-able-to-test-xml-equality()
   )
 };
 
-declare function should-ignore-attribute-order-in-xml-equality()
+declare %test:case function should-ignore-attribute-order-in-xml-equality()
 {
   assert:equal(
     <test foo="1" bar="2"/>,
@@ -56,7 +57,7 @@ declare function should-ignore-attribute-order-in-xml-equality()
   )
 };
 
-declare function should-be-able-to-test-xml-inequality()
+declare %test:case function should-be-able-to-test-xml-inequality()
 {
   assert:not-equal(
     <test><p>para 1</p><p>para 2</p></test>,
@@ -64,13 +65,13 @@ declare function should-be-able-to-test-xml-inequality()
   )
 };
 
-declare function should-be-able-to-test-xpath()
+declare %test:case function should-be-able-to-test-xpath()
 {
   let $xml := <test><p>para 1</p><p>para 2</p></test>
   return assert:equal($xml/p[2], <p>para 2</p>)
 };
 
-declare function should-be-able-to-test-empty-xpath()
+declare %test:case function should-be-able-to-test-empty-xpath()
 {
   let $xml := <test><p>para 1</p><p>para 2</p></test>
   return assert:empty($xml/p[3])
@@ -81,7 +82,7 @@ declare private function get-xml()
   <test><p>para 1</p><p>para 2</p></test>
 };
 
-declare function should-be-able-to-call-private-functions()
+declare %test:case function should-be-able-to-call-private-functions()
 {
   let $xml := test:get-xml()
   return (
@@ -91,29 +92,31 @@ declare function should-be-able-to-call-private-functions()
   )
 };
 
-declare function
+declare %test:case function
   check-doc1-not-loaded() {
   assert:empty(fn:doc("doc1.xml"))
 };
 
-declare private function test:should-not-run-private-function()
+
+declare %test:ignore function should-ignore-test-with-ignore-annotation()
 {
-  fn:error((), 'XRAY-PRIVATE', "this test is private!")
+  fn:error((), 'XRAY-IGNORE', "this test should be ignored!")
 };
 
-declare function IGNORE-should-skip-this-test()
+declare %test:ignore %test:case function should-ignore-test-with-ignore-and-case-annotation()
 {
-  fn:error((), 'XRAY-PRIVATE', "this test should be ignored!")
+  fn:error((), 'XRAY-IGNORE', "this test should be ignored!")
 };
+
 
 (:
-declare function test:should-not-attempt-to-run-commented-out-function()
+declare %test:case function test:should-not-attempt-to-run-commented-out-function()
 {
   fn:error((), 'XRAY-PRIVATE', "this test is commented out!")
 };
 :)
 
-declare function should-handle-sequences()
+declare %test:case function should-handle-sequences()
 {
   assert:equal((1,2,3), (1,2,3)),
   assert:not-equal((1,2,3), (1,2)),
@@ -122,13 +125,13 @@ declare function should-handle-sequences()
   assert:equal((1, "two", <three/>), (1, "two", <three/>))
 };
 
-declare function should-be-able-to-assert-true-and-false()
+declare %test:case function should-be-able-to-assert-true-and-false()
 {
   assert:true(fn:true()),
   assert:false(fn:false())
 };
 
-declare function should-be-able-to-test-simple-cts-query-equality()
+declare %test:case function should-be-able-to-test-simple-cts-query-equality()
 {
   let $query := <cts:and-query/>
   return (
@@ -139,7 +142,7 @@ declare function should-be-able-to-test-simple-cts-query-equality()
   )
 };
 
-declare function should-be-able-to-test-complex-cts-query-equality()
+declare %test:case function should-be-able-to-test-complex-cts-query-equality()
 {
   let $query :=
     cts:or-query((
@@ -149,7 +152,7 @@ declare function should-be-able-to-test-complex-cts-query-equality()
   return assert:equal($query, $query)
 };
 
-declare function should-include-optional-assert-message-on-failure()
+declare %test:case function should-include-optional-assert-message-on-failure()
 {
   let $msg := "$a equals $b"
   let $assert-no-msg := assert:equal(1, 2)
@@ -160,12 +163,7 @@ declare function should-include-optional-assert-message-on-failure()
   )
 };
 
-declare function IGNORE-should-also-skip-this-test()
-{
-  fn:error((), 'XRAY-IGNORE', "this test should be ignored!")
-};
-
-declare function should-be-able-to-import-module-using-relative-path()
+declare %test:case function should-be-able-to-import-module-using-relative-path()
 {
   let $foo := utils:upper("foo")
   return assert:equal($foo, "FOO")

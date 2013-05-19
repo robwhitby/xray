@@ -18,14 +18,6 @@ declare function get-modules(
     module-filenames($fs-dir)[fn:ends-with(., $pattern) or fn:matches(fn:substring-after(., $fs-dir), fn:string($pattern))]
 };
 
-  
-declare function get-module(
-  $module-path as xs:string
-) as xs:string 
-{
-  fn:string(xdmp:filesystem-file($module-path))
-};
-
 
 declare private function module-filenames(
   $dir as xs:string

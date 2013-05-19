@@ -110,6 +110,7 @@
       <xsl:value-of select="', Ignored', count(xray:module/xray:test[@result='ignored'])" />
       <xsl:value-of select="', Errors', count(xray:module/xray:test[@result='error'])" />
       <xsl:value-of select="', Passed', count(xray:module/xray:test[@result='passed'])" />
+      in <xsl:value-of select="substring(string(xdmp:elapsed-time()), 3)"/>
     </p>
   </xsl:template>
 
