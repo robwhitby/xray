@@ -1,9 +1,11 @@
 # xray
 
-**xray** is a framework for writing XQuery unit tests on MarkLogic Server. Test cases are written as standard XQuery functions like this:  
+**xray** is a framework for writing XQuery unit tests on MarkLogic Server. Version 2.0 uses function annotations to define tests, and is only compatible with MarkLogic 6 and up.
+
+Test cases are written as standard XQuery functions like this:  
 
 ```xquery
-declare function string-equality-example()
+declare %test:case function string-equality-example()
 {
   let $foo := "foo"
   return assert:equal($foo, "foo")
@@ -32,13 +34,13 @@ import module namespace assert = "http://github.com/robwhitby/xray/assertions" a
 
 import module namespace some-module = "http://some-module-to-test" at "/some-module-to-test.xqy";
 
-declare function string-equality-example()
+declare %test:case function string-equality-example()
 {
   let $foo := some-module:foo()
   return assert:equal($foo, "foo")
 };
 
-declare function multiple-assert-example()
+declare %test:case function multiple-assert-example()
 {
   let $foo := some-module:foo()
   let $bar := "bar"
@@ -49,20 +51,11 @@ declare function multiple-assert-example()
     assert:true(return-true())
   )
 };
-
-(: more tests ... :)
-
-
-(: private functions are not evaluated as tests :)
-declare private function return-true()
-{
-  fn:true()
-}
 ```
 
 
 ## Invoking Tests
-**xray** will find and execute all the test cases defined in a directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
+**xray** will find and execute all functions with the test:case annotation defined in a directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
 
 * browser - `http://server:port/xray/`
 * command line - call `test-runner.sh` with your project parameters (see below, tested on OSX only).
@@ -123,15 +116,15 @@ assert:false ($actual as item()*, [$message as xs:string?])
 See `src/assertions.xqy` for the assertion definitions. All assertions are overloaded to accept an optional message parameter to provide more information of failures.
 
 ## Setup and teardown functions
-`setup()` and `teardown()` are special function signatures. If defined, `setup()` is invoked before any tests, and in a different transaction so any database updates are visible to the tests. `teardown()` is executed after all tests in that module have finished.
+Use the annotations `%test:setup` and `%test:teardown`. If defined, the setup function is invoked before any tests, and in a different transaction so any database updates are visible to the tests. The teardown function is executed after all tests in that module have finished.
 
-See `test/tests.xqy` for an example.
+See `test/setup-teardown.xqy` for an example.
 
 ## Ignoring Tests 
-Tests can be ignored by addding the prefix `IGNORE` to the test function name.
+Tests can be ignored by adding the `%test:ignore` annotation
 
 ```xquery
-declare function IGNORE-this-test-will-be-ignored()
+declare %test:ignore function this-test-will-be-ignored()
 ```
 
 ## MarkLogic Configuration
@@ -141,12 +134,6 @@ The app server user must belong to a role with the following execute privileges:
 To work with modules stored in a modules database, the additional privileges are required:
 `xdmp:eval-in`
 And the user must have read rights to files in the modules db.
-
-Test modules must be written in XQuery version "1.0-ml" to be parsed correctly.
-
-
-## Acknowledgements
-Thanks to Gunther Rademacher's [REx Parser Generator](http://www.bottlecaps.de/rex/) and [John Snelson](http://github.com/jpcs) for the XQuery 1.0-ml parser.
 
 &nbsp;
 ## Screenshots
