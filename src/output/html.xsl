@@ -25,33 +25,35 @@
         <xsl:apply-templates/>
         <xsl:choose>
           <xsl:when test="xray:module[xray:test|error:error]">
-            <xsl:call-template name="summary"/>
+            <footer>
+              <xsl:call-template name="summary"/>
+              <xsl:call-template name="format-links"/>
+            </footer>
           </xsl:when>
           <xsl:otherwise>
             <xsl:call-template name="no-tests"/>
           </xsl:otherwise>
         </xsl:choose>
-        <xsl:call-template name="format-links"/>
       </body>
     </html>
   </xsl:template>
 
   <xsl:template match="xray:module">
-    <div class="module">
-      <h3>
-        <xsl:attribute name="class">
-          <xsl:choose>
+    <section>
+      <details open="true">
+        <summary>
+          <xsl:attribute name="class">
+            <xsl:choose>
               <xsl:when test="@failed ne '0' or @error ne '0'">failed</xsl:when>
               <xsl:when test="@ignored ne '0'">ignored</xsl:when>
               <xsl:otherwise>passed</xsl:otherwise>
-          </xsl:choose>
-        </xsl:attribute>
-        <a href="{xray:url(@path, (), 'html')}" title="run this module only">
-          <xsl:value-of select="@path"/>
-        </a>
-      </h3>
-      <xsl:apply-templates/>
-    </div>
+            </xsl:choose>
+          </xsl:attribute>
+          <a href="{xray:url(@path, (), 'html')}" title="run this module only"><xsl:value-of select="@path"/></a>
+        </summary>
+        <xsl:apply-templates/>
+      </details>
+    </section>
   </xsl:template>
 
   <xsl:template match="xray:test">
@@ -69,6 +71,7 @@
   </xsl:template>
 
   <xsl:template name="header">
+    <header>
       <h1><a href="http://robwhitby.github.com/xray">xray</a></h1>
       <form>
         <label for="test-dir"><abbr title="test directory path relative from app server root">directory</abbr></label>
@@ -80,6 +83,7 @@
         <input type="hidden" name="format" value="html"/>
         <button>run</button>
       </form>
+    </header>
   </xsl:template>
 
   <xsl:template match="error:error">
@@ -93,15 +97,15 @@
   </xsl:template>
 
   <xsl:template name="summary">
-    <p id="summary">  
+    <p>
       <xsl:attribute name="class">
         <xsl:choose>
-            <xsl:when test="xray:module[xray:test/@result = ('failed','error')]">failed</xsl:when>
-            <xsl:when test="xray:module[xray:test/@result = 'ignored']">ignored</xsl:when>
-            <xsl:otherwise>passed</xsl:otherwise>
+          <xsl:when test="xray:module[xray:test/@result = ('failed','error')]">failed</xsl:when>
+          <xsl:when test="xray:module[xray:test/@result = 'ignored']">ignored</xsl:when>
+          <xsl:otherwise>passed</xsl:otherwise>
         </xsl:choose>
       </xsl:attribute>
-      <xsl:value-of select="'Finished: Total', count(xray:module/xray:test)" />
+      <xsl:value-of select="'Summary: Total', count(xray:module/xray:test)" />
       <xsl:value-of select="', Failed', count(xray:module/xray:test[@result='failed'])" />
       <xsl:value-of select="', Ignored', count(xray:module/xray:test[@result='ignored'])" />
       <xsl:value-of select="', Errors', count(xray:module/xray:test[@result='error'])" />
@@ -122,10 +126,13 @@
 
 
   <xsl:template name="no-tests">
-    <h2>No matching tests found at <xsl:value-of select="xdmp:modules-root()"/><xsl:value-of select="$test-dir"/></h2>
-    <div class="module">
-      <h3>Sample test module</h3>
-      <pre class="code">xquery version <span class="s">"1.0-ml"</span>;
+    <section>
+      <details open="true">
+        <summary>No matching tests found at <xsl:value-of select="xdmp:modules-root()"/><xsl:value-of select="$test-dir"/></summary>
+        <pre class="code">
+<span class="c">(: sample test module :)</span>
+
+xquery version <span class="s">"1.0-ml"</span>;
 module namespace test = <span class="s">"http://github.com/robwhitby/xray/test"</span>;
 import module namespace assert = <span class="s">"http://github.com/robwhitby/xray/assertions"</span> at <span class="s">"/xray/src/assertions.xqy"</span>;
 
@@ -133,8 +140,10 @@ declare function <span class="f">node-should-equal-foo</span> ()
 {
     let <span class="v">$node</span> := <span class="x">&lt;foo/&gt;</span>
     return <span class="f">assert:equal</span>(<span class="v">$node</span>, <span class="x">&lt;foo/&gt;</span>)
-};</pre>
-    </div>
+};
+        </pre>
+      </details>
+    </section>
   </xsl:template>
 
 
@@ -172,13 +181,13 @@ declare function <span class="f">node-should-equal-foo</span> ()
       }
       h1 a:hover { color: #000; background-color: #fff; }
 
-      h3, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
-      h3 { background-color: #eee; }
-      h3.passed { background-color: #090; }
-      h3.failed, h3.error { background-color: #d00; }
-      h3.ignored { background-color: #f80; }
-      h3 a { color: white; text-decoration: none; }
-      h3 a:hover { text-decoration: underline; }
+      summary, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
+      summary { background-color: #eee; }
+      summary.passed { background-color: #090; }
+      summary.failed, h3.error { background-color: #d00; }
+      summary.ignored { background-color: #f80; }
+      summary a { color: white; text-decoration: none; }
+      summary a:hover { text-decoration: underline; }
       h4 a { text-decoration: none; }
       h4 a:hover { text-decoration: underline; }
 
@@ -190,13 +199,19 @@ declare function <span class="f">node-should-equal-foo</span> ()
       label { padding-left: 10px; }
       abbr, .abbr { border-bottom: 1px dotted #ccc; }
       form { position: absolute; top: 10px; right: 10px; }
-      #summary { font-weight: bold; }
-      div.module { border: 1px solid #ccc; margin: 10px 0; }
+      section { border: 1px solid #ccc; margin: 10px 0; }
 
+      .code .c { color: #999; }
       .code .s { color: #d00; }
       .code .v { color: purple; }
       .code .f { color: blue; }
       .code .x { color: #090; }
+
+      summary::-webkit-details-marker {
+        color: #fff;
+        margin-right: 2px;
+      }
+      summary:focus { outline-style: none; }
     </style>
   </xsl:template>
 
