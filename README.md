@@ -55,7 +55,7 @@ declare %test:case function multiple-assert-example()
 
 
 ## Invoking Tests
-**xray** will find and execute all functions with the test:case annotation defined in a directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
+**xray** will find all functions with the `%test:case` annotation defined in library modules with a specific directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
 
 * browser - `http://server:port/xray/`
 * command line - call `test-runner.sh` with your project parameters (see below, tested on OSX only).
