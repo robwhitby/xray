@@ -165,12 +165,14 @@ declare function <span class="f">node-should-equal-foo</span> ()
   </xsl:function>
 
   <xsl:template name="css">
+    <link href='http://fonts.googleapis.com/css?family=Cousine:400,700' rel='stylesheet' type='text/css'/>
     <style type="text/css">
       body { margin: 0 10px; }
-      body, input, button { font-family: "Courier New", Sans-serif; }
+      body, input, button { font-family: Cousine, "Courier New", Sans-serif; }
 
       h1 { margin: 0 0 30px 0; }
       h1 a:link, h1 a:visited, h1 a:hover, h1 a:active {
+        font-family: "Courier New", Sans-serif;
         padding: 10px 10px;
         text-decoration:none;
         color: #fff;
@@ -183,18 +185,17 @@ declare function <span class="f">node-should-equal-foo</span> ()
 
       summary, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
       summary { background-color: #eee; }
-      summary.passed { background-color: #090; }
-      summary.failed, h3.error { background-color: #d00; }
+      summary.passed { background-color: #393; }
+      summary.failed, h3.error { background-color: #c33; }
       summary.ignored { background-color: #f80; }
       summary a { color: white; text-decoration: none; }
       summary a:hover { text-decoration: underline; }
       h4 a { text-decoration: none; }
       h4 a:hover { text-decoration: underline; }
 
-      p.failed, h4.failed a { color: #d00; }
-      p.error, h4.error a { color: #d00; }
+      p.failed, h4.failed a, p.error, h4.error a { color: #c33; }
       p.ignored, h4.ignored a { color: #f80; }
-      p.passed, h4.passed a { color: #090; }
+      p.passed, h4.passed a { color: #393; }
 
       label { padding-left: 10px; }
       abbr, .abbr { border-bottom: 1px dotted #ccc; }
