@@ -57,7 +57,7 @@
   <xsl:template match="xray:test">
     <h4 class="{@result}">
       <a href="{xray:url(../@path, @name, 'html')}" title="run this test only">
-        <xsl:value-of select="@name, '--', upper-case(@result)"/>
+        <xsl:value-of select="@name, '--', upper-case(@result), ' ', xray:format-time(.)"/>
       </a>
     </h4>
     <xsl:if test="@result = 'failed'">
@@ -146,6 +146,13 @@ declare function <span class="f">node-should-equal-foo</span> ()
                                 '&amp;modules=', encode-for-uri($module), 
                                 '&amp;tests=', encode-for-uri($test), 
                                 '&amp;format=', $format)"/>
+  </xsl:function>
+
+  <xsl:function name="xray:format-time" as="xs:string?">
+    <xsl:param name="test" as="element(xray:test)"/>
+    <xsl:if test="$test/@result != 'ignored'">
+        <xsl:value-of select="' -- ', substring($test/@time, 3)"/>
+    </xsl:if>
   </xsl:function>
 
   <xsl:template name="css">
