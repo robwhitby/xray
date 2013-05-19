@@ -4,18 +4,9 @@ import module namespace assert = "http://github.com/robwhitby/xray/assertions" a
 
 import module namespace utils = "utils" at "/xray/test/utils.xqy";
 
-declare function check-doc1-not-loaded() 
-{
-  assert:empty(fn:doc("doc1.xml"))
-};
-
-declare function IGNORE-foo()
-{
-  assert:true(fn:true())
-};
-
-declare function should-be-able-to-import-module-using-root-relative-path() 
+declare function should-be-able-to-import-module-using-root-relative-path()
 {
   let $foo := utils:upper("foo")
   return assert:equal($foo, "FOO")
 };
+
