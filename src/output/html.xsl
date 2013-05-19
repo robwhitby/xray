@@ -115,12 +115,14 @@
 
   <xsl:template name="format-links">
     <p>
-      View results as 
+      View results as
       <a href="{xray:url($module-pattern, $test-pattern, 'xml')}">xml</a>
       <xsl:text>&#160;|&#160;</xsl:text>
       <a href="{xray:url($module-pattern, $test-pattern, 'xunit')}">xUnit</a>
       <xsl:text>&#160;|&#160;</xsl:text>
       <a href="{xray:url($module-pattern, $test-pattern, 'text')}">text</a>
+      <br/>
+      <a href="http://github.com/robwhitby/xray">xray</a> version <xsl:value-of select="/@xray-version"/>
     </p>
   </xsl:template>
 

@@ -5,6 +5,7 @@ declare namespace test = "http://github.com/robwhitby/xray/test";
 import module namespace utils = "http://github.com/robwhitby/xray/utils" at "utils.xqy";
 declare default element namespace "http://github.com/robwhitby/xray";
 
+declare variable $XRAY-VERSION := "1.1";
 
 declare function xray:run-tests(
   $test-dir as xs:string,
@@ -19,6 +20,7 @@ declare function xray:run-tests(
       attribute dir { $test-dir },
       attribute module-pattern { $module-pattern },
       attribute test-pattern { $test-pattern },
+      attribute xray-version { $XRAY-VERSION },
       for $module in $modules
       let $all-fns :=
         try { utils:get-functions($module) }
