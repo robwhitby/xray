@@ -138,7 +138,7 @@ xquery version <span class="s">"1.0-ml"</span>;
 module namespace test = <span class="s">"http://github.com/robwhitby/xray/test"</span>;
 import module namespace assert = <span class="s">"http://github.com/robwhitby/xray/assertions"</span> at <span class="s">"/xray/src/assertions.xqy"</span>;
 
-declare function <span class="f">node-should-equal-foo</span> ()
+declare %test:case function <span class="f">node-should-equal-foo</span> ()
 {
     let <span class="v">$node</span> := <span class="x">&lt;foo/&gt;</span>
     return <span class="f">assert:equal</span>(<span class="v">$node</span>, <span class="x">&lt;foo/&gt;</span>)
