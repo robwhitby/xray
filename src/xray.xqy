@@ -22,7 +22,7 @@ declare function run-tests(
       attribute test-pattern { $test-pattern },
       attribute xray-version { $XRAY-VERSION },
       for $module in $modules
-      let $results := run-module($module)
+      let $results := run-module($module, $test-pattern)
       where fn:exists($results)
       return
         element module {
@@ -117,28 +117,9 @@ declare private function apply(
 };
 
 
-declare private function transform(
-  $el as element(),
-  $test-dir as xs:string,
-  $module-pattern as xs:string?,
-  $test-pattern as xs:string?,
-  $format as xs:string
-) as document-node()
-{
-  if ($format eq "text") then xdmp:set-response-content-type("text/plain") else (),
-  if ($format ne "xml")
-  then
-    let $params := map:map()
-    let $_ := map:put($params, "test-dir", $test-dir)
-    let $_ := map:put($params, "module-pattern", $module-pattern)
-    let $_ := map:put($params, "test-pattern", $test-pattern)
-    return xdmp:xslt-invoke(fn:concat("output/", $format, ".xsl"), $el, $params)
-  else document { $el }
-};
-
-
 declare function run-module(
-  $path as xs:string
+  $path as xs:string,
+  $test-pattern as xs:string?
 ) as element()*
 {
   try {
@@ -146,8 +127,12 @@ declare function run-module(
       xquery version "1.0-ml";
       import module namespace xray = "http://github.com/robwhitby/xray" at "/xray/src/xray.xqy";
       import module namespace test = "http://github.com/robwhitby/xray/test" at "' || $path || '";
-      xray:run-module-tests("' || $path || '")
-    ')
+      declare variable $xray:path as xs:string external;
+      declare variable $xray:test-pattern as xs:string external;
+      xray:run-module-tests($xray:path, $xray:test-pattern)
+    ',
+    (xs:QName("path"), $path, xs:QName("test-pattern"), fn:string($test-pattern))
+    )
   }
   catch err:XPST0003 { $err:additional } (: syntax error in module :)
   catch * { () } (: ignore other errors, e.g. module not in test ns :)
@@ -155,10 +140,13 @@ declare function run-module(
 
 
 declare function run-module-tests(
-  $path as xs:string
+  $path as xs:string,
+  $test-pattern as xs:string
 ) as element()*
 {
-  let $fns := xdmp:functions()[has-test-annotation(., ("case", "ignore", "setup", "teardown"))]
+  let $fns := xdmp:functions()[
+    has-test-annotation(., ("case", "ignore", "setup", "teardown")) and fn:matches(fn-local-name(.), $test-pattern)
+  ]
   return (
     apply($fns[has-test-annotation(., "setup")], $path),
     run-test($fns[has-test-annotation(., "case") or has-test-annotation(., "ignore")], $path),
@@ -180,4 +168,24 @@ declare private function fn-local-name(
 ) as xs:string
 {
   fn:string(fn:local-name-from-QName(xdmp:function-name($fn)))
+};
+
+
+declare private function transform(
+  $el as element(),
+  $test-dir as xs:string,
+  $module-pattern as xs:string?,
+  $test-pattern as xs:string?,
+  $format as xs:string
+) as document-node()
+{
+  if ($format eq "text") then xdmp:set-response-content-type("text/plain") else (),
+  if ($format ne "xml")
+  then
+    let $params := map:map()
+    let $_ := map:put($params, "test-dir", $test-dir)
+    let $_ := map:put($params, "module-pattern", $module-pattern)
+    let $_ := map:put($params, "test-pattern", $test-pattern)
+    return xdmp:xslt-invoke(fn:concat("output/", $format, ".xsl"), $el, $params)
+  else document { $el }
 };

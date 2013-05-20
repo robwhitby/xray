@@ -1,18 +1,18 @@
 # xray
 
-**xray** is a framework for writing XQuery unit tests on MarkLogic Server. Version 2.0 uses function annotations to define tests, and is only compatible with MarkLogic 6 and up.
+**xray** is a framework for writing XQuery unit tests on MarkLogic Server. Version 2.0 uses function annotations to define tests, and requires MarkLogic 6 or above. For MarkLogic 5 support use the v1.1 branch.
 
 Test cases are written as standard XQuery functions like this:  
 
 ```xquery
-declare %test:case function string-equality-example()
+declare %test:case function string-equality-example ()
 {
   let $foo := "foo"
   return assert:equal($foo, "foo")
 };
 ```
 
-**xray** can output test results as HTML, XML, xUnit compatible XML, and plain text, so should be simple to integrate with your favourite build/ci server.
+**xray** can output test results as HTML, XML, xUnit compatible XML, and plain text, so it should be simple to integrate with your favourite build/ci server.
 
 ## Getting Started
 * Clone/copy/symlink xray into the root directory of your project e.g.<br/>
@@ -34,13 +34,13 @@ import module namespace assert = "http://github.com/robwhitby/xray/assertions" a
 
 import module namespace some-module = "http://some-module-to-test" at "/some-module-to-test.xqy";
 
-declare %test:case function string-equality-example()
+declare %test:case function string-equality-example ()
 {
   let $foo := some-module:foo()
   return assert:equal($foo, "foo")
 };
 
-declare %test:case function multiple-assert-example()
+declare %test:case function multiple-assert-example ()
 {
   let $foo := some-module:foo()
   let $bar := "bar"
@@ -51,11 +51,17 @@ declare %test:case function multiple-assert-example()
     assert:true(return-true())
   )
 };
+
+declare %test:ignore function ignored-test-example ()
+{
+  let $foo := some-module:not-implemented-yet()
+  return fn:equal($foo, <foo/>)
+}
 ```
 
 
 ## Invoking Tests
-**xray** will find all functions with the `%test:case` annotation defined in library modules with a specific directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
+**xray** will find all functions with the `%test:case` annotation defined in library modules within a specific directory (including sub-directories), and can be told to execute a subset by specifying regex patterns to match tests by module name or test name.
 
 * browser - `http://server:port/xray/`
 * command line - call `test-runner.sh` with your project parameters (see below, tested on OSX only).
