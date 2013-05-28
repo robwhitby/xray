@@ -134,8 +134,8 @@ declare function run-module(
     (xs:QName("path"), $path, xs:QName("test-pattern"), fn:string($test-pattern))
     )
   }
-  catch err:XPST0003 { $err:additional } (: syntax error in module :)
-  catch * { () } (: ignore other errors, e.g. module not in test ns :)
+  catch err:XQST0059 | err:FOER0000 { () } (: module not in test namespace or unidentified error (e.g. import main module) :)
+  catch * { $err:additional }
 };
 
 
