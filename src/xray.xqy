@@ -134,8 +134,12 @@ declare function run-module(
     (xs:QName("path"), $path, xs:QName("test-pattern"), fn:string($test-pattern))
     )
   }
-  catch err:XQST0059 | err:FOER0000 { () } (: module not in test namespace or unidentified error (e.g. import main module) :)
-  catch * { $err:additional }
+  catch($ex) {
+    switch ($ex/error:code)
+      case "XDMP-IMPMODNS" return () (: ignore - module not in test namespace :)
+      case "XDMP-IMPORTMOD" return () (: ignore - main module :)
+      default return $ex (: return all other errors :)
+  }
 };
 
 
