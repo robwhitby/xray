@@ -125,7 +125,7 @@ declare function run-module(
   try {
     xdmp:eval('
       xquery version "1.0-ml";
-      import module namespace xray = "http://github.com/robwhitby/xray" at "/xray/src/xray.xqy";
+      import module namespace xray = "http://github.com/robwhitby/xray" at "/src/xray.xqy";
       import module namespace test = "http://github.com/robwhitby/xray/test" at "' || $path || '";
       declare variable $xray:path as xs:string external;
       declare variable $xray:test-pattern as xs:string external;

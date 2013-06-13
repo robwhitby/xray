@@ -30,7 +30,7 @@ Tests are grouped into library modules in the xray test namespace. Import the xr
 ```xquery
 xquery version "1.0-ml";
 module namespace test = "http://github.com/robwhitby/xray/test";
-import module namespace assert = "http://github.com/robwhitby/xray/assertions" at "/xray/src/assertions.xqy";
+import module namespace assert = "http://github.com/robwhitby/xray/assertions" at "/src/assertions.xqy";
 
 import module namespace some-module = "http://some-module-to-test" at "/some-module-to-test.xqy";
 
