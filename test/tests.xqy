@@ -15,7 +15,8 @@ declare %test:case function tests-can-contain-multiple-asserts()
   return (
     assert:not-empty($foo),
     assert:equal($foo, "foo"),
-    assert:not-equal($foo, $bar)
+    assert:not-equal($foo, $bar),
+    xdmp:log("tests-can-contain-multiple-asserts")
   )
 };
 

@@ -5,6 +5,8 @@ xquery version "1.0-ml";
  : Library functions for code coverage.
  :
  : @author Michael Blakeley
+ :
+ : Modified by Rob Whitby
  :)
 
 module namespace cover = "http://github.com/robwhitby/xray/coverage";
@@ -13,7 +15,8 @@ import module namespace modules = "http://github.com/robwhitby/xray/modules" at 
 
 declare default element namespace "http://github.com/robwhitby/xray";
 
-declare variable $NBSP := fn:codepoints-to-string(160);
+declare private variable $NBSP := fn:codepoints-to-string(160);
+declare private variable $DEBUG := fn:false();
 
 declare private function cover:_sequence-from-map(
   $map as map:map)
@@ -105,10 +108,11 @@ declare function cover:cover(
 {
   cover:actual-via-debug($request, $modules, $results-map)
   ,
-  for $uri in $modules
-  let $map := map:get($results-map, $uri)[1]
-  return xdmp:log(
-    text { 'DEBUG', $uri, 'actual', map:count($map), 'lines' })
+  if ($DEBUG) then
+    for $uri in $modules
+    let $map := map:get($results-map, $uri)[1]
+    return xdmp:log(text { 'DEBUG', $uri, 'actual', map:count($map), 'lines' })
+  else ()
   ,
   (: reprocess :)
   for $key in map:keys($results-map)
@@ -140,7 +144,7 @@ declare private function cover:_prepare-from-request(
   $uri as xs:string,
   $results-map as map:map)
 {
-  xdmp:log(text { 'DEBUG request', $request, 'module', $uri }),
+  if ($DEBUG) then xdmp:log(text { 'DEBUG request', $request, 'module', $uri }) else (),
   try {
     let $lines-map := map:get($results-map, $uri)[2]
     (: Semi-infinite loop, to be broken using DBG-LINE.
@@ -176,7 +180,7 @@ declare private function cover:_prepare-R(
   $path as xs:string)
 {
   (: TODO implement caching :)
-  xdmp:log(text { 'DEBUG function', fn:string(xdmp:function-name($fn)), fn:count($rest) }),
+  if ($DEBUG) then xdmp:log(text { 'DEBUG function', fn:string(xdmp:function-name($fn)), fn:count($rest) }) else (),
   let $modules := map:keys($results-map)
   let $request := dbg:eval(cover:query($fn, $path))
   let $do := (
@@ -226,8 +230,6 @@ declare function cover:prepare(
   $path as xs:string)
 as map:map?
 {
-  xdmp:log("modules : " || fn:string-join($modules, " : ")),
-  xdmp:log("functions : " || fn:count($functions)),
   if (fn:not($modules)) then ()
   else cover:_prepare($modules, $functions, map:map(), $path)
 };
@@ -240,7 +242,8 @@ declare private function cover:_result(
     attribute count { map:count($map) },
     for $line in xs:integer(map:keys($map))
     order by $line
-    return $line }
+    return $line
+  }
 };
 
 declare function cover:results(
