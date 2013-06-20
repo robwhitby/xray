@@ -63,12 +63,18 @@
                                              '&amp;wanted=', encode-for-uri(xray:wanted/string()),
                                              '&amp;covered=', encode-for-uri(xray:covered/string()),
                                              '&amp;format=html')"/>
-    <div class="module-coverage">
-      <li class="module-coverage">
-        <a class="module-coverage" href="{ $link }">
-          <xsl:value-of select="@uri"/></a>: <xsl:value-of select="concat(round(100 * $covered div $wanted), '%')"/>
-      </li>
-    </div>
+    <xsl:variable name="pct" select="if ($wanted ne '0') then round(100 * $covered div $wanted) else -1"/>
+    <xsl:variable name="status">
+      <xsl:choose>
+        <xsl:when test="$pct eq 100">passed</xsl:when>
+        <xsl:when test="$pct le 0">failed</xsl:when>
+        <xsl:otherwise>ignored</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <li class="{$status}">
+      <span class="pct"><xsl:value-of select="if ($pct ne -1) then concat($pct, '%') else 'n/a'"/></span>
+      <a href="{$link}"><xsl:value-of select="@uri"/></a>
+    </li>
   </xsl:template>
 
   <xsl:template match="prof:report"/>
@@ -86,23 +92,25 @@
           </xsl:attribute>
           <a href="{xray:url(@path, (), 'html')}" title="run this module only"><xsl:value-of select="@path"/></a>
         </summary>
-        <xsl:apply-templates/>
+        <ul>
+          <xsl:apply-templates/>
+        </ul>
       </details>
     </section>
   </xsl:template>
 
   <xsl:template match="xray:test">
-    <h4 class="{@result}">
+    <li class="{@result}">
       <a href="{xray:url(../@path, @name, 'html')}" title="run this test only">
         <xsl:value-of select="@name, '--', upper-case(@result), ' ', xray:format-time(.)"/>
       </a>
-    </h4>
-    <xsl:if test="@result = 'failed'">
-      <pre><xsl:value-of select="xdmp:quote(xray:assert[@result='failed'])"/></pre>
-    </xsl:if>
-    <xsl:if test="@result = 'error'">
-      <xsl:apply-templates/>
-    </xsl:if>
+      <xsl:if test="@result = 'failed'">
+        <pre><xsl:value-of select="xdmp:quote(xray:assert[@result='failed'])"/></pre>
+      </xsl:if>
+      <xsl:if test="@result = 'error'">
+        <xsl:apply-templates/>
+      </xsl:if>
+    </li>
   </xsl:template>
 
   <xsl:template name="header">
@@ -168,7 +176,9 @@
   <xsl:template name="no-tests">
     <section>
       <details open="true">
-        <summary>No matching tests found at <xsl:value-of select="xdmp:modules-root()"/><xsl:value-of select="$test-dir"/></summary>
+        <summary>
+          No matching tests found at <xsl:value-of select="xdmp:modules-root()"/><xsl:value-of select="$test-dir"/>
+        </summary>
         <pre class="code">
 <span class="c">(: sample test module :)</span>
 

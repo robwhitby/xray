@@ -7,3 +7,9 @@ declare function upper($s as xs:string) as xs:string
 {
   fn:upper-case($s)
 };
+
+
+declare function never-called()
+{
+  fn:error()
+};

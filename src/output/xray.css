@@ -14,19 +14,22 @@ h1 a:link, h1 a:visited, h1 a:hover, h1 a:active {
 }
 h1 a:hover { color: #000; background-color: #fff; }
 
-summary, h4, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
+summary, li, pre { margin: 0; padding: 5px 10px; font-weight: normal; }
 summary { background-color: #eee; }
 summary.passed { background-color: #393; }
 summary.failed, h3.error { background-color: #c33; }
 summary.ignored { background-color: #f80; }
 summary a { color: white; text-decoration: none; }
 summary a:hover { text-decoration: underline; }
-h4 a { text-decoration: none; }
-h4 a:hover { text-decoration: underline; }
 
-p.failed, h4.failed a, p.error, h4.error a { color: #c33; }
-p.ignored, h4.ignored a { color: #f80; }
-p.passed, h4.passed a { color: #393; }
+ul { padding: 0; margin: 5px 0; }
+li { list-style: none; }
+li a { text-decoration: none; }
+li a:hover { text-decoration: underline; }
+
+p.failed, li.failed a, p.error, li.error a { color: #c33; }
+p.ignored, li.ignored a { color: #f80; }
+p.passed, li.passed a { color: #393; }
 
 label { padding-left: 10px; }
 abbr, .abbr { border-bottom: 1px dotted #ccc; }
@@ -48,16 +51,6 @@ summary:focus { outline-style: none; }
 
 
 /* coverage */
-
-.coverage-summary {
-    border: 1px solid #ccc;
-    margin: 10px 0;
-}
-
-li.module-coverage {
-    list-style-type: none;
-}
-
 .source
 {
     font-family: monospace, -moz-fixed !important;

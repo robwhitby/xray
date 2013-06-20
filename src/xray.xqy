@@ -229,7 +229,7 @@ declare function transform(
   return
     xdmp:xslt-invoke(
       fn:concat("output/", $format, ".xsl"),
-      if (fn:empty($coverage-modules) or $format eq "xunit") then $el else cover:transform($el),
+      if (fn:empty($coverage-modules) or fn:empty($el//xray:test) or $format eq "xunit") then $el else cover:transform($el),
       $params
     )
 };
