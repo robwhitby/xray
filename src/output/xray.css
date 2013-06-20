@@ -48,7 +48,7 @@ summary::-webkit-details-marker {
 }
 summary:focus { outline-style: none; }
 
-
+span.pct { display: inline-block; width: 45px; text-align: right; }
 
 /* coverage */
 .source
