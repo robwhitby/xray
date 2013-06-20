@@ -80,7 +80,7 @@ declare function run-test(
 
 
 declare private function get-status(
-  $test as element()
+  $test as element()*
 ) as xs:string
 {
   if ($test instance of element(exception) or $test instance of element(error:error)) then $ERROR
