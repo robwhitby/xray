@@ -165,8 +165,9 @@ declare private function cover:_prepare-from-request(
     where fn:not(map:get($lines-map, $key))
     return cover:_put($lines-map, $key) }
   catch ($ex) {
-    if (fn:not($ex/error:code = 'DBG-LINE')) then xdmp:rethrow()
-    else () }
+    if (fn:not($ex/error:code = ("DBG-LINE", "DBG-MODULEDNE"))) then xdmp:rethrow()
+    else ()
+  }
 };
 
 declare private function cover:_prepare-R(
