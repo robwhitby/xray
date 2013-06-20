@@ -153,12 +153,12 @@ declare function run-module(
       declare variable $xray:test-pattern as xs:string external;
       declare variable $xray:coverage-modules as element() external;
 
-      xray:run-module-tests($xray:path, $xray:test-pattern, $xray:coverage-modules//fn:string())
+      xray:run-module-tests($xray:path, $xray:test-pattern, $xray:coverage-modules/xray:m/fn:string())
       ',
       (
         xs:QName("path"), $path,
         xs:QName("test-pattern"), fn:string($test-pattern),
-        xs:QName("coverage-modules"), <coverage>{$coverage-modules ! <m>{.}</m>}</coverage>
+        xs:QName("coverage-modules"), <c>{$coverage-modules ! <m>{.}</m>}</c>
       )
     )
   }
@@ -219,24 +219,17 @@ declare function transform(
   $coverage-modules as xs:string*
 ) as document-node()
 {
-  if ($format eq "text") then xdmp:set-response-content-type("text/plain")
-  else ()
-  ,
-  if ($format ne "xml")
-  then
-    let $params := map:map()
-    let $_ := map:put($params, "coverage-modules", $coverage-modules)
-    let $_ := map:put($params, "module-pattern", $module-pattern)
-    let $_ := map:put($params, "test-dir", $test-dir)
-    let $_ := map:put($params, "test-pattern", $test-pattern)
-    return
-      xdmp:xslt-invoke(
-        fn:concat("output/", $format, ".xsl"),
-        if (fn:empty($coverage-modules) or $format eq "xunit") then $el else cover:transform($el),
-        $params
-      )
-  else
-    document {
-      if (fn:empty($coverage-modules)) then $el else cover:transform($el)
-    }
+  if ($format eq "text") then xdmp:set-response-content-type("text/plain") else (),
+
+  let $params := map:map()
+  let $_ := map:put($params, "coverage-modules", $coverage-modules)
+  let $_ := map:put($params, "module-pattern", $module-pattern)
+  let $_ := map:put($params, "test-dir", $test-dir)
+  let $_ := map:put($params, "test-pattern", $test-pattern)
+  return
+    xdmp:xslt-invoke(
+      fn:concat("output/", $format, ".xsl"),
+      if (fn:empty($coverage-modules) or $format eq "xunit") then $el else cover:transform($el),
+      $params
+    )
 };

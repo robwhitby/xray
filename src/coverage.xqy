@@ -215,12 +215,6 @@ as map:map
   cover:_prepare-R($functions[1], fn:subsequence($functions, 2), $results-map, $path)
   ,
   $results-map
-  (: TODO remove debugging code :)
-  ,
-  for $uri in $modules
-  let $map := map:get($results-map, $uri)[2]
-  return xdmp:log(
-    text { 'DEBUG', $uri, 'wants', map:count($map), 'lines' })
 };
 
 (:~

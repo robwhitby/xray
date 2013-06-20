@@ -6,7 +6,7 @@ import module namespace assert = "http://github.com/robwhitby/xray/assertions" a
 declare default function namespace "http://www.w3.org/2005/xpath-functions";
 
 
-declare %test:case function test:should-allow-setting-default-function-namespace()
+declare %test:case function test:should-allow-setting-default-function-namespace ()
 {
   assert:true(true())
 };

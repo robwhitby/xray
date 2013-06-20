@@ -2,6 +2,7 @@
                 xmlns:xray="http://github.com/robwhitby/xray"
                 xmlns:xdmp="http://marklogic.com/xdmp"
                 xmlns:error="http://marklogic.com/xdmp/error"
+                xmlns:prof="http://marklogic.com/xdmp/profile"
                 xmlns:xs="http://www.w3.org/2001/XMLSchema"
                 version="2.0"
                 exclude-result-prefixes="xray xdmp">
@@ -70,6 +71,8 @@
     </div>
   </xsl:template>
 
+  <xsl:template match="prof:report"/>
+
   <xsl:template match="xray:module">
     <section>
       <details open="true">
@@ -113,6 +116,9 @@
         <label for="test-pattern"><abbr title="regex match on test name">tests</abbr></label>
         <input type="text" name="tests" id="test-pattern" value="{$test-pattern}"/>
         <input type="hidden" name="format" value="html"/>
+        <xsl:for-each select="$coverage-modules">
+          <input type="hidden" name="coverage-module" value="{.}"/>
+        </xsl:for-each>
         <button>run</button>
       </form>
     </header>
