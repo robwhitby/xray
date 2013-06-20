@@ -466,5 +466,5 @@ declare private function cover:query(
 {
   'xquery version "1.0-ml";
   import module namespace t="' || fn:namespace-uri-from-QName(xdmp:function-name($fn)) || '" at "' || $path || '";
-  t:' || xdmp:function-name($fn) || '()'
+  t:' || fn:local-name-from-QName(xdmp:function-name($fn)) || '()'
 };
