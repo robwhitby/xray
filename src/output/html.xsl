@@ -20,7 +20,7 @@
         <title>xray</title>
         <link rel="icon" type="image/png" href="favicon.ico" />
         <link href='http://fonts.googleapis.com/css?family=Cousine:400,700' rel='stylesheet' type='text/css'/>
-        <link rel="stylesheet" type="text/css" href="xray.css" />
+        <link rel="stylesheet" type="text/css" href="src/output/xray.css" />
       </head>
       <body>
         <xsl:call-template name="header"/>
@@ -43,12 +43,16 @@
   <xsl:template match="xray:coverage-summary">
     <xsl:variable name="covered" select="@covered-count"/>
     <xsl:variable name="wanted" select="@wanted-count"/>
-    <div class="coverage-summary">
-      <h3>Code Coverage: <xsl:value-of select="concat(round(100 * $covered div $wanted), '%')"/></h3>
-      <ul>
-        <xsl:apply-templates/>
-      </ul>
-    </div>
+    <section>
+      <details open="false">
+        <summary>
+          Code Coverage: <xsl:value-of select="concat(round(100 * $covered div $wanted), '%')"/>
+        </summary>
+        <ul>
+          <xsl:apply-templates/>
+        </ul>
+      </details>
+    </section>
   </xsl:template>
 
   <xsl:template match="xray:module-coverage">

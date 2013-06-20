@@ -290,8 +290,7 @@ declare function cover:transform(
 )
 {
   element { fn:node-name($tests) } {
-    $tests/@*
-    ,
+    $tests/(@*|node()),
     let $map := map:map()
     let $do := (
       for $c in $tests/module/test/coverage
@@ -331,9 +330,10 @@ declare function cover:transform(
         attribute uri { $uri },
         cover:_result('wanted', $wanted),
         cover:_result('covered', $covered),
-        cover:_result('missing', $wanted - $covered) } }
-    ,
-    $tests/node() }
+        cover:_result('missing', $wanted - $covered)
+      }
+    }
+  }
 };
 
 declare function cover:module-view-html(
