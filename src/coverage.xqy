@@ -180,8 +180,7 @@ declare private function cover:_prepare-R(
   let $request := dbg:eval(utils:query($fn))
   let $do := (
     _prepare-from-request($request, $modules, $results-map),
-    xdmp:request-cancel(
-      xdmp:host(), dbg:value($request, 'xdmp:server()'), $request))
+    xdmp:request-cancel(xdmp:host(), xdmp:server("TaskServer"), $request))
   let $modules-remaining :=
     for $uri in $modules
     where map:count(map:get($results-map, $uri)[2]) eq 0
