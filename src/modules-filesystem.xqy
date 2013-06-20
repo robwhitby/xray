@@ -42,10 +42,10 @@ declare function get-modules(
   $pattern as xs:string?
 ) as xs:string*
 {
-  let $fs-dir := append-path(clean-path($ROOT), clean-path($test-dir))
+  let $root := clean-path($ROOT)
+  let $fs-dir := append-path($root, clean-path($test-dir))
   where filesystem-directory-exists($fs-dir)
-  return module-filenames($fs-dir)[
-    fn:matches(fn:substring-after(., $fs-dir), $pattern)]
+  return module-filenames($fs-dir)[fn:matches(fn:substring-after(., $root), $pattern)]
 };
 
 
