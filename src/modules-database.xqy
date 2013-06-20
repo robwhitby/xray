@@ -47,7 +47,7 @@ declare function get-modules(
     where
       fn:starts-with($uri, $uri-prefix)
       and fn:matches($uri, "\.xqy?$")
-      and fn:matches(fn:substring-after($uri, $modules-root), fn:string($pattern))
+      and (fn:ends-with($uri, $pattern) or fn:matches(fn:substring-after($uri, $modules-root), fn:string($pattern)))
     return $uri
   ',
   (

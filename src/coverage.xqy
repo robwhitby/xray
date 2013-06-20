@@ -9,8 +9,7 @@ xquery version "1.0-ml";
 
 module namespace cover = "http://github.com/robwhitby/xray/coverage";
 
-import module namespace utils = "http://github.com/robwhitby/xray/utils"
-  at "utils.xqy";
+import module namespace modules = "http://github.com/robwhitby/xray/modules" at "modules.xqy";
 
 declare default element namespace "http://github.com/robwhitby/xray";
 
@@ -173,12 +172,13 @@ declare private function cover:_prepare-from-request(
 declare private function cover:_prepare-R(
   $fn as xdmp:function,
   $rest as xdmp:function*,
-  $results-map as map:map)
+  $results-map as map:map*,
+  $path as xs:string)
 {
   (: TODO implement caching :)
-  xdmp:log(text { 'DEBUG function', $fn, fn:count($rest) }),
+  xdmp:log(text { 'DEBUG function', fn:string(xdmp:function-name($fn)), fn:count($rest) }),
   let $modules := map:keys($results-map)
-  let $request := dbg:eval(utils:query($fn))
+  let $request := dbg:eval(cover:query($fn, $path))
   let $do := (
     _prepare-from-request($request, $modules, $results-map),
     xdmp:request-cancel(xdmp:host(), xdmp:server("TaskServer"), $request))
@@ -190,9 +190,9 @@ declare private function cover:_prepare-R(
    : If we run out of functions, the results will show 0 lines to be covered.
    :)
   return
-    if (fn:not($modules-remaining)) then ()
-    else if (fn:not($rest)) then ()
-    else cover:_prepare-R($rest[1], fn:subsequence($rest, 2), $results-map)
+    if (fn:empty($modules-remaining)) then ()
+    else if (fn:empty($rest)) then ()
+    else cover:_prepare-R($rest[1], fn:subsequence($rest, 2), $results-map, $path)
 };
 
 (:~
@@ -201,7 +201,8 @@ declare private function cover:_prepare-R(
 declare private function cover:_prepare(
   $modules as xs:string+,
   $functions as xdmp:function*,
-  $results-map as map:map)
+  $results-map as map:map,
+  $path as xs:string)
 as map:map
 {
   (: When this comes back, each map key will have two entries:
@@ -211,8 +212,7 @@ as map:map
   for $m in $modules
   return map:put($results-map, $m, (map:map(), map:map()))
   ,
-  cover:_prepare-R(
-    $functions[1], fn:subsequence($functions, 2), $results-map)
+  cover:_prepare-R($functions[1], fn:subsequence($functions, 2), $results-map, $path)
   ,
   $results-map
   (: TODO remove debugging code :)
@@ -228,11 +228,14 @@ as map:map
  :)
 declare function cover:prepare(
   $modules as xs:string*,
-  $functions as xdmp:function*)
+  $functions as xdmp:function*,
+  $path as xs:string)
 as map:map?
 {
+  xdmp:log("modules : " || fn:string-join($modules, " : ")),
+  xdmp:log("functions : " || fn:count($functions)),
   if (fn:not($modules)) then ()
-  else cover:_prepare($modules, $functions, map:map())
+  else cover:_prepare($modules, $functions, map:map(), $path)
 };
 
 declare private function cover:_result(
@@ -456,10 +459,18 @@ declare function cover:module-view(
 {
   cover:module-view(
     $module, $format,
-    fn:tokenize(utils:get-module($module, fn:false()), '\n'),
+    fn:tokenize(modules:get-module($module, fn:false()), '\n'),
     cover:_map-from-sequence($wanted),
     cover:_map-from-sequence($covered))
 };
 
 
-(: src/coverage.xqy :)
+declare private function cover:query(
+  $fn as xdmp:function,
+  $path as xs:string
+) as xs:string
+{
+  'xquery version "1.0-ml";
+  import module namespace t="' || fn:namespace-uri-from-QName(xdmp:function-name($fn)) || '" at "' || $path || '";
+  t:' || xdmp:function-name($fn) || '()'
+};

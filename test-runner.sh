@@ -8,6 +8,7 @@
 BASEURL=http://localhost:8889/xray/
 CREDENTIALS=
 DIR=test
+FORMAT=text
 MODULES=
 TESTS=
 #####################################################################
@@ -21,11 +22,12 @@ CDEFAULT=$(tput sgr0)
 STATUS=0
 
 function usage() {
-      echo '
+      printf '
 usage: test-runner.sh [options...]
 Options:
       -c <user:password>    Credential for HTTP authentication.
       -d <path>             Look for tests in this directory.
+      -f <xml|html|text>    Set output format.
       -h                    This message.
       -m <regex>            Test modules that match this pattern.
       -t <regex>            Test functions that match this pattern.
@@ -34,11 +36,12 @@ Options:
       exit 1
 }
 
-while getopts 'c:d:hm:t:u:' OPTION
+while getopts 'c:d:f:h:m:t:u:' OPTION
 do
   case $OPTION in
     c) CREDENTIAL="$OPTARG";;
     d) DIR="$OPTARG";;
+    f) FORMAT="$OPTARG";;
     h) usage;;
     m) MODULES="$OPTARG";;
     t) TESTS="$OPTARG";;
@@ -47,7 +50,7 @@ do
   esac
 done
 
-URL="$BASEURL?format=text&modules=$MODULES&tests=$TESTS&dir=$DIR"
+URL="$BASEURL?format=$FORMAT&modules=$MODULES&tests=$TESTS&dir=$DIR"
 CURL="curl --silent"
 if [ -n "$CREDENTIAL" ]; then
     CURL="$CURL --anyauth --user $CREDENTIAL"
@@ -61,19 +64,19 @@ fi
 
 while read -r LINE; do
   case $LINE in
-    Module*) echo -ne $CDEFAULT;;
-    *PASSED) echo -ne $CGREEN;;
-    *IGNORED) echo -ne $CYELLOW;;
-    *FAILED) STATUS=1; echo -ne $CRED;;
-    Finished*) echo -ne $CDEFAULT;;
+    Module*) printf $CDEFAULT;;
+    *PASSED) printf $CGREEN;;
+    *IGNORED) printf $CYELLOW;;
+    *FAILED) STATUS=1; printf $CRED;;
+    *ERROR) STATUS=1; printf $CRED;;
+    Finished*) echo && if [ $STATUS -eq 1 ]; then printf $CRED; else printf $CGREEN; fi;;
   esac
   echo $LINE
 done <<< "$RESPONSE"
 
 DIFF=$(( $(date +%s) - $START ))
-echo -ne $CDEFAULT
-#echo -e "Time: $DIFF seconds"
+if [ $FORMAT == "text" ]; then
+  printf $CDEFAULT
+fi
 
 exit $STATUS
-
-# end

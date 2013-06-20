@@ -1,13 +1,21 @@
 xquery version "1.0-ml";
 
 module namespace xray = "http://github.com/robwhitby/xray";
+
 declare namespace test = "http://github.com/robwhitby/xray/test";
-import module namespace cover = "http://github.com/robwhitby/xray/coverage"
-  at "coverage.xqy";
-import module namespace utils = "http://github.com/robwhitby/xray/utils" at "utils.xqy";
+import module namespace modules = "http://github.com/robwhitby/xray/modules" at "modules.xqy";
+import module namespace cover = "http://github.com/robwhitby/xray/coverage" at "coverage.xqy";
+
 declare default element namespace "http://github.com/robwhitby/xray";
 
-declare function xray:run-tests(
+declare private variable $XRAY-VERSION := "2.1";
+declare private variable $VALID-ANNOTATIONS := ("case", "ignore", "setup", "teardown");
+declare private variable $PASSED := "passed";
+declare private variable $IGNORED := "ignored";
+declare private variable $FAILED := "failed";
+declare private variable $ERROR := "error";
+
+declare function run-tests(
   $test-dir as xs:string,
   $module-pattern as xs:string?,
   $test-pattern as xs:string?,
@@ -15,81 +23,83 @@ declare function xray:run-tests(
   $coverage-modules as xs:string*
 ) as item()*
 {
-  utils:transform(
+  let $modules as xs:string* := modules:get-modules($test-dir, fn:string($module-pattern))
+  let $tests :=
     element tests {
       attribute dir { $test-dir },
       attribute module-pattern { $module-pattern },
       attribute test-pattern { $test-pattern },
-      for $module in utils:get-modules($test-dir, fn:string($module-pattern))
-      let $all-fns :=
-        try { utils:get-functions($module) }
-        catch ($ex) { xray:error($ex) }
-      let $error := if ($all-fns instance of element(error:error)) then $all-fns else ()
-      let $test-fns := if ($error) then () else xray:test-functions($all-fns, $test-pattern)
-      let $coverage := cover:prepare($coverage-modules, $test-fns)
-      where fn:exists(($test-fns, $error))
+      attribute xray-version { $XRAY-VERSION },
+      for $module in $modules
+      let $results := run-module($module, $test-pattern, $coverage-modules)
+      where fn:exists($results)
       return
         element module {
-          attribute path { utils:relative-path($module) },
-          if (fn:exists($error)) then $error
+          attribute path { $module },
+          if ($results instance of element(error:error)) then (
+            attribute total { 0 },
+            attribute passed { 0 },
+            attribute ignored { 0 },
+            attribute failed { 0 },
+            attribute error { 1 },
+            $results
+          )
           else (
-            xray:apply($all-fns[utils:get-local-name(.) = "setup"]),
-            for $fn in $test-fns return xray:run-test($fn, $coverage),
-            xray:apply($all-fns[utils:get-local-name(.) = "teardown"])
+            attribute total { fn:count($results) },
+            attribute passed { fn:count($results[@result = $PASSED]) },
+            attribute ignored { fn:count($results[@result = $IGNORED]) },
+            attribute failed { fn:count($results[@result = $FAILED]) },
+            attribute error { fn:count($results[@result = $ERROR]) },
+            $results
           )
         }
-    },
-    $test-dir, $module-pattern, $test-pattern, $format,
-    $coverage-modules)
+    }
+  return
+    xray:transform($tests, $test-dir, $module-pattern, $test-pattern, $format, $coverage-modules)
 };
 
 
-declare function xray:run-tests(
-  $test-dir as xs:string,
-  $module-pattern as xs:string?,
-  $test-pattern as xs:string?,
-  $format as xs:string?
-) as item()*
-{
-  xray:run-tests($test-dir, $module-pattern, $test-pattern, $format, ())
-};
-
-
-declare function xray:run-test(
+declare function run-test(
   $fn as xdmp:function,
+  $path as xs:string,
   $coverage as map:map?
 ) as element(test)
 {
-  let $start as xs:dayTimeDuration := xdmp:elapsed-time()
-  let $ignore := fn:starts-with(utils:get-local-name($fn), "IGNORE")
-  let $test := if ($ignore) then () else xray:apply($fn, $coverage)
-  let $status :=
-    if ($ignore) then "ignored"
-    else if ($test instance of element(exception)
-      or $test instance of element(error:error)
-      or $test//descendant-or-self::assert[@result="failed"]) then "failed"
-    else "passed"
+  let $start-time as xs:dayTimeDuration := xdmp:elapsed-time()
+  let $ignore := has-test-annotation($fn, "ignore")
+  let $test := if ($ignore) then () else xray:apply($fn, $path, $coverage)
+  let $status := if ($ignore) then $IGNORED else get-status($test)
   return element test {
-    attribute name { utils:get-local-name($fn) },
+    attribute name { fn-local-name($fn) },
     attribute result { $status },
-    attribute time { xdmp:elapsed-time() - $start },
+    attribute time { xdmp:elapsed-time() - $start-time },
     if (fn:empty($coverage)) then $test
-    else cover:results($coverage, $test, $status eq 'passed')
+    else cover:results($coverage, $test, $status eq $PASSED)
   }
 };
 
 
-declare function xray:test-response(
+declare private function get-status(
+  $test as element()
+) as xs:string
+{
+  if ($test instance of element(exception) or $test instance of element(error:error)) then $ERROR
+  else if ($test//descendant-or-self::assert[@result = $FAILED]) then $FAILED
+  else $PASSED
+};
+
+
+declare function assert-response(
   $assertion as xs:string,
   $passed as xs:boolean,
   $actual as item()*,
   $expected as item()*,
   $message as xs:string?
-) as element(xray:assert)
+) as element(assert)
 {
   element assert {
     attribute test { $assertion },
-    attribute result { if ($passed) then "passed" else "failed" },
+    attribute result { if ($passed) then $PASSED else $FAILED },
     element actual { $actual },
     element expected { $expected },
     element message { $message }
@@ -97,29 +107,16 @@ declare function xray:test-response(
 };
 
 
-declare private function xray:test-functions(
-  $functions as xdmp:function*,
-  $pattern as xs:string?
-) as xdmp:function*
-{
-  for $fn in $functions
-  let $name := utils:get-local-name($fn)
-  where
-    fn:matches($name, fn:string($pattern))
-    and fn:not($name = ("setup", "teardown"))
-  return $fn
-};
-
-
-declare private function xray:apply(
+declare private function apply(
   $fn as xdmp:function,
+  $path as xs:string,
   $coverage as map:map?
 ) as item()*
 {
   (: The test tool itself should always run in timestamped mode. :)
   if (xdmp:request-timestamp()) then ()
-  else fn:error((), 'UPDATE', 'Query must be read-only but contains updates!'),
-  (: Since we already have xdmp:function items we could use xdmp:apply here.
+  else fn:error((), "UPDATE", "Query must be read-only but contains updates"),
+  (: Since we already have a function item we could use $fn() here.
    : But there is an inherent problem with xdmp:apply
    : https://github.com/robwhitby/xray/issues/9
    : It does not know if the function to be applied is an update or not.
@@ -128,22 +125,118 @@ declare private function xray:apply(
    : So we build a query string from the function data, and eval it.
    :)
   try {
-    if (fn:empty($coverage)) then xdmp:eval(utils:query($fn))
-    else prof:eval(utils:query($fn))
+    let $q := '
+      xquery version "1.0-ml";
+      import module namespace test = "http://github.com/robwhitby/xray/test" at "' || $path || '";
+      test:' || fn-local-name($fn) || '()
+    '
+    return
+      if (fn:empty($coverage)) then xdmp:eval($q)
+      else prof:eval($q) 
   }
-  catch ($ex) { element exception { xray:error($ex)} }
+  catch * { $err:additional }
 };
 
-declare private function xray:apply(
+
+declare function run-module(
+  $path as xs:string,
+  $test-pattern as xs:string?,
+  $coverage-modules as xs:string*
+) as element()*
+{
+  try {
+    xdmp:eval('
+      xquery version "1.0-ml";
+      import module namespace xray = "http://github.com/robwhitby/xray" at "/xray/src/xray.xqy";
+      import module namespace test = "http://github.com/robwhitby/xray/test" at "' || $path || '";
+      declare variable $xray:path as xs:string external;
+      declare variable $xray:test-pattern as xs:string external;
+      declare variable $xray:coverage-modules as element() external;
+
+      xray:run-module-tests($xray:path, $xray:test-pattern, $xray:coverage-modules//fn:string())
+      ',
+      (
+        xs:QName("path"), $path,
+        xs:QName("test-pattern"), fn:string($test-pattern),
+        xs:QName("coverage-modules"), <coverage>{$coverage-modules ! <m>{.}</m>}</coverage>
+      )
+    )
+  }
+  catch($ex) {
+    switch ($ex/error:code)
+      case "XDMP-IMPMODNS" return () (: ignore - module not in test namespace :)
+      case "XDMP-IMPORTMOD" return () (: ignore - main module :)
+      default return $ex (: return all other errors :)
+  }
+};
+
+
+declare function run-module-tests(
+  $path as xs:string,
+  $test-pattern as xs:string,
+  $coverage-modules as xs:string*
+) as element()*
+{
+  let $fns := xdmp:functions()[has-test-annotation(.) and fn:matches(fn-local-name(.), $test-pattern)]
+  let $coverage := cover:prepare($coverage-modules, $fns, $path)
+  return (
+    apply($fns[has-test-annotation(., "setup")], $path, $coverage),
+    run-test($fns[has-test-annotation(., "case") or has-test-annotation(., "ignore")], $path, $coverage),
+    apply($fns[has-test-annotation(., "teardown")], $path, $coverage)
+  )
+};
+
+declare function has-test-annotation(
+  $fn as xdmp:function,
+  $name as xs:string
+) as xs:boolean
+{
+  fn:exists(xdmp:annotation($fn, xs:QName("test:" || $name)))
+};
+
+declare function has-test-annotation(
   $fn as xdmp:function
-) as item()*
+) as xs:boolean
 {
-  xray:apply($fn, ())
+  has-test-annotation($fn, $VALID-ANNOTATIONS) = fn:true()
 };
 
-declare private function xray:error(
-  $ex as element(error:error)
-) as element(error:error)
+
+declare private function fn-local-name(
+  $fn as xdmp:function
+) as xs:string
 {
-  $ex
+  fn:string(fn:local-name-from-QName(xdmp:function-name($fn)))
+};
+
+
+declare function transform(
+  $el as element(),
+  $test-dir as xs:string,
+  $module-pattern as xs:string?,
+  $test-pattern as xs:string?,
+  $format as xs:string,
+  $coverage-modules as xs:string*
+) as document-node()
+{
+  if ($format eq "text") then xdmp:set-response-content-type("text/plain")
+  else ()
+  ,
+  if ($format ne "xml")
+  then
+    let $params := map:map()
+    let $_ := map:put($params, "coverage-modules", $coverage-modules)
+    let $_ := map:put($params, "module-pattern", $module-pattern)
+    let $_ := map:put($params, "test-dir", $test-dir)
+    let $_ := map:put($params, "test-pattern", $test-pattern)
+    return
+      xdmp:xslt-invoke(
+        fn:concat("output/", $format, ".xsl"),
+        if (fn:empty($coverage-modules) or $format eq "xunit") then $el else cover:transform($el),
+        $params
+      )
+  else
+    document {
+      if (fn:empty($coverage-modules)) then $el else cover:transform($el)
+    }
 };

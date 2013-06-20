@@ -19,7 +19,7 @@ declare function assert:equal(
 ) as element(xray:assert)
 {
   let $status := deep-equal($actual, $expected)
-  return xray:test-response("equal", $status, $actual, $expected, $message)
+  return xray:assert-response("equal", $status, $actual, $expected, $message)
 };
 
 
@@ -38,7 +38,7 @@ declare function assert:not-equal(
 ) as element(xray:assert)
 {
   let $status := fn:not(deep-equal($actual, $expected))
-  return xray:test-response("not-equal", $status, $actual, $expected, $message)
+  return xray:assert-response("not-equal", $status, $actual, $expected, $message)
 };
 
 
@@ -55,7 +55,7 @@ declare function assert:empty(
 ) as element(xray:assert)
 {
   let $status := fn:empty($actual)
-  return xray:test-response("empty", $status, $actual, "empty-sequence()", $message)
+  return xray:assert-response("empty", $status, $actual, "empty-sequence()", $message)
 };
 
 
@@ -72,7 +72,7 @@ declare function assert:not-empty(
 ) as element(xray:assert)
 {
   let $status := fn:not(fn:empty($actual))
-  return xray:test-response("not-empty", $status, $actual, "item()+", $message)
+  return xray:assert-response("not-empty", $status, $actual, "item()+", $message)
 };
 
 
@@ -94,7 +94,7 @@ declare function assert:error(
     if ($actual instance of element(error:error)) then $actual/error:code/fn:string()
     else ()
   let $status := $actual-error-code = $expected-error-code
-  return xray:test-response("error", $status, ($actual-error-code, $actual)[1], $expected-error-code, $message)
+  return xray:assert-response("error", $status, ($actual-error-code, $actual)[1], $expected-error-code, $message)
 };
 
 
@@ -111,7 +111,7 @@ declare function assert:true(
 ) as element(xray:assert)
 {
   let $status := $actual instance of xs:boolean and $actual
-  return xray:test-response("true", $status, $actual, "true", $message)
+  return xray:assert-response("true", $status, $actual, "true", $message)
 };
 
 
@@ -128,7 +128,7 @@ declare function assert:false(
 ) as element(xray:assert)
 {
   let $status := $actual instance of xs:boolean and fn:not($actual)
-  return xray:test-response("false", $status, $actual, "false", $message)
+  return xray:assert-response("false", $status, $actual, "false", $message)
 };
 
 
