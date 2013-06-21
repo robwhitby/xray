@@ -1,3 +1,11 @@
+Branch v2.1 is a work in progress integrating the coverage branch, contributed by Michael Blakeley.
+
+The UI is not finished, to enable code coverage you must add a `coverage-module` querystring parameter for each module you want to cover.
+
+`http://localhost:8889/xray/?dir=xray/test&coverage-module=&coverage-module=/xray/test/utils.xqy&coverage-module=/foo.xqy`
+
+
+
 # xray
 
 **xray** is a framework for writing XQuery unit tests on MarkLogic Server. Version 2.0 uses function annotations to define tests, and requires MarkLogic 6 or above. For MarkLogic 5 support use the v1.1 branch.
