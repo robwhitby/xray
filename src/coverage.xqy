@@ -412,10 +412,17 @@ declare function cover:module-view(
   $covered as xs:integer*
 )
 {
-  cover:module-view(
+  let $source :=
+    try {
+      fn:tokenize(modules:get-module($module, fn:false()), '\n')
+    } catch ($ex) {
+      $ex/error:format-string
+    }
+
+  return cover:module-view(
     $module,
     $format,
-    fn:tokenize(modules:get-module($module, fn:false()), '\n'),
+    $source,
     cover:_map-from-sequence($wanted),
     cover:_map-from-sequence($covered)
   )
