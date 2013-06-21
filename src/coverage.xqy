@@ -333,47 +333,6 @@ declare function cover:transform(
   }
 };
 
-declare function cover:module-view-html(
-  $module as xs:string,
-  $lines as xs:string*,
-  $wanted as map:map,
-  $covered as map:map,
-  $missing as map:map)
-{
-  xdmp:set-response-content-type('text/xml'),
-  <html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-      <title>Coverage for { $module }</title>
-      <link rel="icon" type="image/png" href="favicon.ico" />
-      <link rel="stylesheet" type="text/css" href="xray.css" />
-    </head>
-    <body>
-      <h1>
-        <a href="http://robwhitby.github.com/xray">xray</a>
-      </h1>
-      <div class="module">
-        <h3>Code Coverage for { $module }</h3>
-        <div class="source">
-  {
-    for $i at $x in $lines
-    let $key := fn:string($x)
-    let $class :=
-      if (map:get($covered, $key)) then 'covered-line'
-      else if (map:get($wanted, $key)) then 'wanted-line'
-      else 'line'
-    return element div {
-      attribute class { $class },
-      element span {
-        attribute class { 'lineno' },
-        $x },
-      if ($i) then $i else $NBSP }
-  }
-        </div>
-      </div>
-    </body>
-  </html>
-};
-
 declare function cover:module-view-text(
   $module as xs:string,
   $lines as xs:string*,
@@ -399,7 +358,6 @@ declare function cover:module-view-xml(
   $covered as map:map,
   $missing as map:map)
 {
-  xdmp:set-response-content-type('text/xml'),
   <module xmlns="http://github.com/robwhitby/xray">
   {
     attribute uri { $module },
@@ -424,16 +382,16 @@ declare function cover:module-view(
   $covered as map:map,
   $missing as map:map)
 {
-  if ($format eq 'html') then cover:module-view-html(
-    $module, $lines, $wanted, $covered, $missing)
-  else if ($format eq 'text') then cover:module-view-text(
-    $module, $lines, $wanted, $covered, $missing)
-  else if ($format eq 'xml') then cover:module-view-xml(
-    $module, $lines, $wanted, $covered, $missing)
-  else fn:error(
-    (), 'XRAY-BADFORMAT',
-    ('Format invalid for code coverage view:', $format))
+  if ($format eq "html") then
+    xdmp:xslt-invoke(
+      fn:concat("output/coverage/", $format, ".xsl"),
+      cover:module-view-xml($module, $lines, $wanted, $covered, $missing)
+    )
+  else if ($format eq "text") then cover:module-view-text($module, $lines, $wanted, $covered, $missing)
+  else if ($format eq "xml") then cover:module-view-xml($module, $lines, $wanted, $covered, $missing)
+  else fn:error((), "XRAY-BADFORMAT", ("Format invalid for code coverage view: ", $format))
 };
+
 
 declare function cover:module-view(
   $module as xs:string,
@@ -443,22 +401,24 @@ declare function cover:module-view(
   $covered as map:map
 )
 {
-  cover:module-view(
-    $module, $format, $lines,
-    $wanted, $covered, $wanted - $covered)
+  cover:module-view($module, $format, $lines, $wanted, $covered, $wanted - $covered)
 };
+
 
 declare function cover:module-view(
   $module as xs:string,
   $format as xs:string,
   $wanted as xs:integer*,
-  $covered as xs:integer*)
+  $covered as xs:integer*
+)
 {
   cover:module-view(
-    $module, $format,
+    $module,
+    $format,
     fn:tokenize(modules:get-module($module, fn:false()), '\n'),
     cover:_map-from-sequence($wanted),
-    cover:_map-from-sequence($covered))
+    cover:_map-from-sequence($covered)
+  )
 };
 
 

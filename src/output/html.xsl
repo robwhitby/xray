@@ -5,7 +5,7 @@
                 xmlns:prof="http://marklogic.com/xdmp/profile"
                 xmlns:xs="http://www.w3.org/2001/XMLSchema"
                 version="2.0"
-                exclude-result-prefixes="xray xdmp">
+                exclude-result-prefixes="xray xdmp prof error xs">
 
   <xsl:output method="html" omit-xml-declaration="yes" indent="yes"/>
 
@@ -14,15 +14,12 @@
   <xsl:param name="test-dir"/>
   <xsl:param name="test-pattern"/>
 
+  <xsl:include href="common.xsl"/>
+
   <xsl:template match="xray:tests">
     <xsl:text>&lt;!DOCTYPE html&gt;</xsl:text>
     <html>
-      <head>
-        <title>xray</title>
-        <link rel="icon" type="image/png" href="favicon.ico" />
-        <link href='http://fonts.googleapis.com/css?family=Cousine:400,700' rel='stylesheet' type='text/css'/>
-        <link rel="stylesheet" type="text/css" href="src/output/xray.css" />
-      </head>
+      <xsl:call-template name="html-head"/>
       <body>
         <xsl:call-template name="header"/>
         <xsl:apply-templates/>
@@ -47,7 +44,7 @@
     <section>
       <details open="false">
         <summary>
-          Code Coverage: <xsl:value-of select="concat(round(100 * $covered div $wanted), '%')"/>
+          Code Coverage: <xsl:value-of select="if ($wanted ne '0') then concat(round(100 * $covered div $wanted), '%') else '0%'"/>
         </summary>
         <ul>
           <xsl:apply-templates/>
@@ -63,7 +60,7 @@
                                              '&amp;wanted=', encode-for-uri(xray:wanted/string()),
                                              '&amp;covered=', encode-for-uri(xray:covered/string()),
                                              '&amp;format=html')"/>
-    <xsl:variable name="pct" select="if ($wanted ne '0') then round(100 * $covered div $wanted) else -1"/>
+    <xsl:variable name="pct" select="if ($wanted ne '0') then round(100 * $covered div $wanted) else 0"/>
     <xsl:variable name="status">
       <xsl:choose>
         <xsl:when test="$pct eq 100">passed</xsl:when>
@@ -72,7 +69,7 @@
       </xsl:choose>
     </xsl:variable>
     <li class="{$status}">
-      <span class="pct"><xsl:value-of select="if ($pct ne -1) then concat($pct, '%') else 'n/a'"/></span>
+      <span class="pct"><xsl:value-of select="if ($pct ne -1) then concat($pct, '%') else '-'"/></span>
       <a href="{$link}"><xsl:value-of select="@uri"/></a>
     </li>
   </xsl:template>
@@ -111,25 +108,6 @@
         <xsl:apply-templates/>
       </xsl:if>
     </li>
-  </xsl:template>
-
-  <xsl:template name="header">
-    <header>
-      <h1><a href="http://robwhitby.github.com/xray">xray</a></h1>
-      <form>
-        <label for="test-dir"><abbr title="test directory path relative from app server root">directory</abbr></label>
-        <input type="text" name="dir" id="test-dir" value="{$test-dir}"/>
-        <label for="module-pattern"><abbr title="regex match on module name">modules</abbr></label>
-        <input type="text" name="modules" id="module-pattern" value="{$module-pattern}"/>
-        <label for="test-pattern"><abbr title="regex match on test name">tests</abbr></label>
-        <input type="text" name="tests" id="test-pattern" value="{$test-pattern}"/>
-        <input type="hidden" name="format" value="html"/>
-        <xsl:for-each select="$coverage-modules">
-          <input type="hidden" name="coverage-module" value="{.}"/>
-        </xsl:for-each>
-        <button>run</button>
-      </form>
-    </header>
   </xsl:template>
 
   <xsl:template match="error:error">
