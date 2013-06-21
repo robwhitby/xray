@@ -48,18 +48,27 @@ summary::-webkit-details-marker {
 }
 summary:focus { outline-style: none; }
 
-span.pct { display: inline-block; width: 45px; text-align: right; }
+span.pct {
+  display: inline-block;
+  width: 45px;
+  text-align: right;
+}
 
 /* coverage */
 ol.coverage-source li {
   font-family: monospace;
-  font-weight: light;
+  margin-left: 30px;
+  color: #999;
 }
 
-ol.coverage-source li pre { display: inline; padding: 0 2px; }
+ol.coverage-source li pre {
+  display: inline;
+  padding: 0 2px;
+  color: #000;
+}
 
-ol.coverage-source li.wanted pre { background-color: #c33; }
-ol.coverage-source li.covered pre { background-color: #393; }
+ol.coverage-source li.wanted pre { background-color: #f66; }
+ol.coverage-source li.covered pre { background-color: #6f6; }
 
 
 
