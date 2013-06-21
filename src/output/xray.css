@@ -36,6 +36,7 @@ abbr, .abbr { border-bottom: 1px dotted #ccc; }
 form { position: absolute; top: 10px; right: 10px; }
 section { border: 1px solid #ccc; margin: 10px 0; }
 
+.code { margin-left: 25px; }
 .code .c { color: #999; }
 .code .s { color: #d00; }
 .code .v { color: purple; }

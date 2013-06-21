@@ -21,8 +21,9 @@
     <html>
       <xsl:call-template name="html-head"/>
       <body>
-        <xsl:call-template name="header"/>
-
+        <header>
+          <h1><a href="http://robwhitby.github.com/xray">xray</a></h1>
+        </header>
         <section>
           <details open="true">
             <summary>
