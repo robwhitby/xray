@@ -259,9 +259,7 @@ declare function cover:results(
   let $modules := map:keys($results-map)
   let $do := (
     (: Populate the coverage maps from the profiler output. :)
-    for $expr in $results[
-      . instance of element(prof:report)]/prof:histogram/prof:expression[
-      prof:uri = $modules ]
+    for $expr in $results[. instance of element(prof:report)]/prof:histogram/prof:expression[prof:uri = $modules]
     let $m := map:get($results-map, $expr/prof:uri)[1]
     let $key := $expr/prof:line/fn:string()
     where fn:not(map:get($m, $key))
@@ -271,8 +269,9 @@ declare function cover:results(
   let $covered := $seq[1]
   let $wanted := $seq[2]
   let $assert :=
-    if (map:count($covered - $wanted) eq 0) then ()
-    else fn:error((), 'BAD', map:keys($covered - $wanted))
+    if ($DEBUG and map:count($covered - $wanted) gt 0)
+    then xdmp:log($uri || " got more coverage than we were bargaining for: lines = " || map:keys($covered - $wanted))
+    else ()
   order by $uri
   return element coverage {
     attribute uri { $uri },
@@ -361,6 +360,8 @@ declare function cover:module-view-xml(
   <module xmlns="http://github.com/robwhitby/xray">
   {
     attribute uri { $module },
+    attribute covered { map:count($covered) },
+    attribute wanted { map:count($wanted) },
     for $i at $x in $lines
     let $key := fn:string($x)
     return element line {

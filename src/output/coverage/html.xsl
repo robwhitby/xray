@@ -26,7 +26,9 @@
         <section>
           <details open="true">
             <summary>
-              Code Coverage: <xsl:value-of select="@uri"/>
+              Code Coverage for
+              <xsl:value-of select="@uri"/>:
+              <xsl:value-of select="xray:coverage-percent(xs:int(@covered), xs:int(@wanted))"/>%
             </summary>
             <ol class="coverage-source">
               <xsl:apply-templates/>

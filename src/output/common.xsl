@@ -35,4 +35,11 @@
     </header>
   </xsl:template>
 
+  <xsl:function name="xray:coverage-percent" as="xs:int">
+    <xsl:param name="covered" as="xs:int"/>
+    <xsl:param name="wanted" as="xs:int"/>
+    <xsl:value-of select="if ($wanted ne 0) then min((100, round(100 * $covered div $wanted))) else 0"/>
+  </xsl:function>
+
+
 </xsl:stylesheet>

@@ -39,12 +39,10 @@
   </xsl:template>
 
   <xsl:template match="xray:coverage-summary">
-    <xsl:variable name="covered" select="@covered-count"/>
-    <xsl:variable name="wanted" select="@wanted-count"/>
     <section>
       <details open="false">
         <summary>
-          Code Coverage: <xsl:value-of select="if ($wanted ne '0') then concat(round(100 * $covered div $wanted), '%') else '0%'"/>
+          Code Coverage: <xsl:value-of select="xray:coverage-percent(xs:int(@covered-count), xs:int(@wanted-count))"/>%
         </summary>
         <ul>
           <xsl:apply-templates/>
@@ -54,13 +52,11 @@
   </xsl:template>
 
   <xsl:template match="xray:module-coverage">
-    <xsl:variable name="covered" select="xray:covered/@count"/>
-    <xsl:variable name="wanted" select="xray:wanted/@count"/>
     <xsl:variable name="link" select="concat('coverage.xqy?module=', encode-for-uri(@uri),
                                              '&amp;wanted=', encode-for-uri(xray:wanted/string()),
                                              '&amp;covered=', encode-for-uri(xray:covered/string()),
                                              '&amp;format=html')"/>
-    <xsl:variable name="pct" select="if ($wanted ne '0') then round(100 * $covered div $wanted) else 0"/>
+    <xsl:variable name="pct" select="xray:coverage-percent(xs:int(xray:covered/@count), xs:int(xray:wanted/@count))"/>
     <xsl:variable name="status">
       <xsl:choose>
         <xsl:when test="$pct eq 100">passed</xsl:when>
@@ -69,7 +65,7 @@
       </xsl:choose>
     </xsl:variable>
     <li class="{$status}">
-      <span class="pct"><xsl:value-of select="if ($pct ne -1) then concat($pct, '%') else '-'"/></span>
+      <span class="pct"><xsl:value-of select="$pct"/>%</span>
       <a href="{$link}"><xsl:value-of select="@uri"/></a>
     </li>
   </xsl:template>
