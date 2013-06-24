@@ -152,5 +152,7 @@ And the user must have read rights to files in the modules db.
 &nbsp;
 ## Screenshots
 ![screenshot of html output](screenshots/xray.png?raw=true)
+- - -
 ![screenshot of html coverage output](screenshots/coverage.png?raw=true)
+- - -
 ![screenshot of terminal output](screenshots/terminal.png?raw=true)
