@@ -71,6 +71,6 @@ ol.coverage-source li pre {
 ol.coverage-source li.wanted pre { background-color: #f66; }
 ol.coverage-source li.covered pre { background-color: #6f6; }
 
-
+summary { display: block; } /* for non webkit */
 
 
