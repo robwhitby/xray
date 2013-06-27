@@ -177,7 +177,12 @@ declare function run-module-tests(
   $coverage-modules as xs:string*
 ) as element()*
 {
-  let $fns := xdmp:functions()[has-test-annotation(.) and fn:matches(fn-local-name(.), $test-pattern)]
+  let $fns :=
+    for $f in xdmp:functions()
+    let $name := fn-local-name($f)
+    where has-test-annotation($f) and fn:matches($name, $test-pattern)
+    order by $name
+    return $f
   let $coverage := cover:prepare($coverage-modules, $fns, $path)
   return (
     apply($fns[has-test-annotation(., "setup")], $path, $coverage),
