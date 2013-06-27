@@ -148,12 +148,12 @@ declare function run-module-tests(
   $test-pattern as xs:string
 ) as element()*
 {
-  let $fns := for $f in xdmp:functions()[
-    has-test-annotation(., ("case", "ignore", "setup", "teardown")) and fn:matches(fn-local-name(.), $test-pattern)
-  ]
-  order by local-name-from-QName(function-name($f))
-  return $f
-  
+  let $fns := 
+    for $f in xdmp:functions()
+    let $name := fn-local-name($f)
+    where has-test-annotation($f, ("case", "ignore", "setup", "teardown")) and fn:matches($name, $test-pattern)
+    order by $name
+    return $f
   return (
     apply($fns[has-test-annotation(., "setup")], $path),
     run-test($fns[has-test-annotation(., "case") or has-test-annotation(., "ignore")], $path),
