@@ -55,7 +55,6 @@ declare function run-test(
   $path as xs:string
 ) as element(test)
 {
-  let $start-time as xs:dayTimeDuration := xdmp:elapsed-time()
   let $ignore := has-test-annotation($fn, "ignore")
   let $map := if ($ignore) then () else xray:apply($fn, $path)
   let $test := map:get($map, "results")
@@ -68,7 +67,7 @@ declare function run-test(
       else if ($test//descendant-or-self::assert[@result="failed"]) then "failed"
       else "passed"
     },
-    attribute time { $time (:xdmp:elapsed-time() - $start-time:) },
+    attribute time { $time },
     $test
   }
 };
@@ -166,9 +165,9 @@ declare function run-module-tests(
     order by $name
     return $f
   return (
-    apply($fns[has-test-annotation(., "setup")], $path),
+    map:get(apply($fns[has-test-annotation(., "setup")], $path), "results"),
     run-test($fns[has-test-annotation(., "case") or has-test-annotation(., "ignore")], $path),
-    apply($fns[has-test-annotation(., "teardown")], $path)
+    map:get(apply($fns[has-test-annotation(., "teardown")], $path), "results")
   )
 };
 
