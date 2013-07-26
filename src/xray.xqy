@@ -65,14 +65,15 @@ declare function run-test(
   $coverage as map:map?
 ) as element(test)
 {
-  let $start-time as xs:dayTimeDuration := xdmp:elapsed-time()
   let $ignore := has-test-annotation($fn, "ignore")
-  let $test := if ($ignore) then () else xray:apply($fn, $path, $coverage)
+  let $map := if ($ignore) then () else xray:apply($fn, $path, $coverage)
+  let $test := map:get($map, "results")
+  let $time := map:get($map, "time")
   let $status := if ($ignore) then $IGNORED else get-status($test)
   return element test {
     attribute name { fn-local-name($fn) },
     attribute result { $status },
-    attribute time { xdmp:elapsed-time() - $start-time },
+    attribute time { $time },
     if (fn:empty($coverage)) then $test
     else cover:results($coverage, $test, $status eq $PASSED)
   }
@@ -128,11 +129,16 @@ declare private function apply(
     let $q := '
       xquery version "1.0-ml";
       import module namespace test = "http://github.com/robwhitby/xray/test" at "' || $path || '";
-      test:' || fn-local-name($fn) || '()
+      let $start := xdmp:elapsed-time()
+      let $results := try { test:' || fn-local-name($fn) || '() } catch($err) { $err }
+      let $duration := xdmp:elapsed-time() - $start
+      let $map := map:map()
+      let $_ := (
+        map:put($map, "results", $results),
+        map:put($map, "time", $duration)
+      )
+      return $map
     '
-    return
-      if (fn:empty($coverage)) then xdmp:eval($q)
-      else prof:eval($q) 
   }
   catch * { $err:additional }
 };
