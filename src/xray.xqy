@@ -139,6 +139,9 @@ declare private function apply(
       )
       return $map
     '
+    return
+      if (fn:empty($coverage)) then xdmp:eval($q)
+      else prof:eval($q) 
   }
   catch * { $err:additional }
 };
