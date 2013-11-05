@@ -7,11 +7,11 @@
 
   <xsl:template match="xray:tests">
     <xsl:apply-templates/>
-    <xsl:value-of select="'Finished: Total', count(xray:module/xray:test)" />
-    <xsl:value-of select="', Failed', count(xray:module/xray:test[@result='failed'])" />
-    <xsl:value-of select="', Ignored', count(xray:module/xray:test[@result='ignored'])" />
-    <xsl:value-of select="', Errors', count(xray:module/error:error)" />
-    <xsl:value-of select="', Passed', count(xray:module/xray:test[@result='passed'])" />
+    <xsl:value-of select="'Finished: Total', sum(xray:module/@total)" />
+    <xsl:value-of select="', Failed', sum(xray:module/@failed)" />
+    <xsl:value-of select="', Ignored', sum(xray:module/@ignored)" />
+    <xsl:value-of select="', Errors', sum(xray:module/@error)" />
+    <xsl:value-of select="', Passed', sum(xray:module/@passed)" />
   </xsl:template>
 
   <xsl:template match="xray:coverage-summary">
@@ -46,6 +46,8 @@
   </xsl:template>
 
   <xsl:template match="error:error">
+    <xsl:value-of select="'ERROR: ', error:message"/>
+    <xsl:text>&#10;</xsl:text>
     <xsl:copy-of select="."/>
     <xsl:text>&#10;</xsl:text>
   </xsl:template>

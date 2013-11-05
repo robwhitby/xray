@@ -63,7 +63,7 @@ declare %test:case function multiple-assert-example ()
 declare %test:ignore function ignored-test-example ()
 {
   let $foo := some-module:not-implemented-yet()
-  return fn:equal($foo, <foo/>)
+  return assert:equal($foo, <foo/>)
 }
 ```
 
