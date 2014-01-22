@@ -197,6 +197,7 @@ declare private function transform(
 ) as document-node()
 {
   if ($format eq "text") then xdmp:set-response-content-type("text/plain") else (),
+  if ($format eq "json") then xdmp:set-response-content-type("application/json") else (),
   if ($format ne "xml")
   then
     let $params := map:map()
