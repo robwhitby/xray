@@ -67,7 +67,7 @@ declare function run-test(
       else if ($test//descendant-or-self::assert[@result="failed"]) then "failed"
       else "passed"
     },
-    attribute time { $time },
+    attribute time { ($time, "PT0S")[1] },
     $test
   }
 };
@@ -158,7 +158,7 @@ declare function run-module-tests(
   $test-pattern as xs:string
 ) as element()*
 {
-  let $fns := 
+  let $fns :=
     for $f in xdmp:functions()
     let $name := fn-local-name($f)
     where has-test-annotation($f, ("case", "ignore", "setup", "teardown")) and fn:matches($name, $test-pattern)
