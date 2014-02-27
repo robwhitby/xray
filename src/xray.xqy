@@ -161,7 +161,9 @@ declare function run-module-tests(
   let $fns :=
     for $f in xdmp:functions()
     let $name := fn-local-name($f)
-    where has-test-annotation($f, ("case", "ignore", "setup", "teardown")) and fn:matches($name, $test-pattern)
+    where 
+      has-test-annotation($f, ("setup", "teardown")) or 
+      has-test-annotation($f, ("case", "ignore")) and fn:matches($name, $test-pattern)
     order by $name
     return $f
   return (
