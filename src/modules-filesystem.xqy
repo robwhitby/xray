@@ -8,16 +8,22 @@ declare function get-modules(
   $pattern as xs:string?
 ) as xs:string*
 {
-  let $test-dir :=
-    if (xdmp:platform() eq "winnt")
-    then fn:replace($test-dir, "/", "\\")
-    else fn:replace($test-dir, "\\", "/")
+  let $test-dir := normalise-slashes($test-dir)
   let $fs-dir := fn:concat(xdmp:modules-root(), fn:replace($test-dir, "^[/\\]+", ""))
   where filesystem-directory-exists($fs-dir)
   return 
-    module-filenames($fs-dir)[fn:ends-with(., $pattern) or fn:matches(fn:substring-after(., $fs-dir), fn:string($pattern))]
+    let $modules := module-filenames($fs-dir)
+    return $modules[fn:ends-with(., normalise-slashes($pattern)) or fn:matches(fn:substring-after(., $fs-dir), fn:string($pattern))]
 };
 
+declare private function normalise-slashes(
+  $path as xs:string
+) as xs:string
+{
+  if (xdmp:platform() eq "winnt")
+  then fn:replace($path, "/", "\\")
+  else fn:replace($path, "\\", "/")
+};
 
 declare private function module-filenames(
   $dir as xs:string

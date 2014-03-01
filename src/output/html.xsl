@@ -155,7 +155,7 @@ declare %test:case function <span class="f">node-should-equal-foo</span> ()
     <xsl:param name="module" as="xs:string"/>
     <xsl:param name="test" as="xs:string?"/>
     <xsl:param name="format" as="xs:string?"/>
-    <xsl:value-of select="concat('?dir=', $test-dir, 
+    <xsl:value-of select="concat('?dir=', encode-for-uri($test-dir), 
                                 '&amp;modules=', encode-for-uri($module), 
                                 '&amp;tests=', encode-for-uri($test), 
                                 '&amp;format=', $format)"/>
