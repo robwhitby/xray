@@ -14,7 +14,7 @@ declare function get-modules(
     else fn:replace($test-dir, "\\", "/")
   let $fs-dir := fn:concat(xdmp:modules-root(), fn:replace($test-dir, "^[/\\]+", ""))
   where filesystem-directory-exists($fs-dir)
-  return 
+  return
     module-filenames($fs-dir)[fn:ends-with(., $pattern) or fn:matches(fn:substring-after(., $fs-dir), fn:string($pattern))]
 };
 
@@ -28,7 +28,7 @@ declare private function module-filenames(
   return
     if ($entry/dir:type = "file")
     then
-      if (fn:matches($entry/dir:pathname, "\.xqy?$"))
+      if (fn:matches($entry/dir:pathname, "\.xq[my]?$"))
       then $entry/dir:pathname/fn:string()
       else ()
     else module-filenames($entry/dir:pathname/fn:string())
@@ -40,10 +40,10 @@ declare private function filesystem-directory-exists(
 ) as xs:boolean
 {
   try  { fn:exists(xdmp:filesystem-directory($dir)) }
-  catch($e) 
-  { 
-    if ($e/error:code = "SVC-DIROPEN") 
-    then fn:false() 
+  catch($e)
+  {
+    if ($e/error:code = "SVC-DIROPEN")
+    then fn:false()
     else xdmp:rethrow()
   }
 };
