@@ -35,7 +35,7 @@ declare function run-tests(
       where fn:exists($results)
       return
         element module {
-          attribute path { $module },
+          attribute path { modules:path-after($module, $test-dir) },
           if ($results instance of element(error:error)) then (
             attribute total { 0 },
             attribute passed { 0 },
@@ -74,7 +74,8 @@ declare function run-test(
     attribute result { $status },
     attribute time { xdmp:elapsed-time() - $start },
     if (fn:empty($coverage)) then $test
-    else cover:results($coverage, $test, $status eq $PASSED)
+    else if (not($status eq $PASSED)) then $test
+    else cover:results($coverage, $test)
   }
 };
 
@@ -83,7 +84,10 @@ declare private function get-status(
   $test as element()*
 ) as xs:string
 {
-  if ($test instance of element(exception) or $test instance of element(error:error)) then $ERROR
+  (: With code coverage, input may include profile reports and errors. :)
+  if ($test[
+      . instance of element(exception)
+      or . instance of element(error:error)]) then $ERROR
   else if ($test//descendant-or-self::assert[@result = $FAILED]) then $FAILED
   else $PASSED
 };
@@ -223,8 +227,6 @@ declare function transform(
   $coverage-modules as xs:string*
 ) as document-node()
 {
-  if ($format eq "text") then xdmp:set-response-content-type("text/plain") else (),
-
   let $params := map:map()
   let $_ := map:put($params, "coverage-modules", $coverage-modules)
   let $_ := map:put($params, "module-pattern", $module-pattern)

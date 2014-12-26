@@ -19,4 +19,10 @@ declare variable $coverage-modules as xs:string* := fn:distinct-values(
   if ($format = "xunit") then () else xdmp:get-request-field("coverage-module")[. ne ""]
 );
 
+(: Set the content-type here,
+ : so we can test xray:transform with any format.
+ :)
+if ($format eq "text") then xdmp:set-response-content-type("text/plain")
+else (),
+
 xray:run-tests($dir, $modules, $tests, $format, $coverage-modules)

@@ -2,9 +2,15 @@ Branch v2.1 is a work in progress integrating the coverage branch, contributed b
 
 The UI is not finished, to enable code coverage you must add a `coverage-module` querystring parameter for each module you want to cover.
 
-`http://localhost:8889/xray/?dir=xray/test&coverage-module=&coverage-module=/xray/test/utils.xqy&coverage-module=/foo.xqy`
+```
+http://localhost:8889/xray/?dir=xray/test&coverage-module=&coverage-module=/xray/test/utils.xqy&coverage-module=/foo.xqy
+```
 
-
+If you see `DBG-DEBUGTASKS` you must change the Task Server configuration
+to increase the number of debug threads.
+If you are debugging the code coverage library itself,
+you may find that you need to cancel orphaned tasks or restart the server.
+However this should not be necessary during normal operation.
 
 # xray
 
