@@ -50,3 +50,11 @@ declare function relative-path(
   fn:substring($path, fn:string-length(xdmp:modules-root()))
 };
 
+declare function path-after(
+  $path as xs:string,
+  $prefix as xs:string?)
+as xs:string
+{
+  if (not($prefix)) then $path
+  else replace(substring-after($path, $prefix), '^([/\\]+)', '')
+};

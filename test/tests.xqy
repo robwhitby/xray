@@ -30,6 +30,11 @@ declare %test:case function should-be-able-to-test-string-equality()
   assert:equal("foo", "bar", "not foo so should fail")
 };
 
+declare %test:case function should-detect-runtime-error()
+{
+  assert:true("foo" eq 1)
+};
+
 declare %test:case function should-be-able-to-return-multiple-asserts()
 {
   assert:equal(0.5, 0.5),

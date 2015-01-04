@@ -9,22 +9,17 @@ xquery version "1.0-ml";
  : Modified by Rob Whitby
  :)
 
-module namespace cover = "http://github.com/robwhitby/xray/coverage";
+module namespace cover="http://github.com/robwhitby/xray/coverage";
 
-import module namespace modules = "http://github.com/robwhitby/xray/modules" at "modules.xqy";
+import module namespace log="http://github.com/robwhitby/xray/logging"
+  at "logging.xqy";
+import module namespace modules="http://github.com/robwhitby/xray/modules"
+  at "modules.xqy";
 
 declare default element namespace "http://github.com/robwhitby/xray";
 
-declare private variable $NBSP := fn:codepoints-to-string(160);
-declare private variable $DEBUG := fn:false();
-
-declare private function cover:_sequence-from-map(
-  $map as map:map)
-{
-  for $k in map:keys($map)
-  order by $k
-  return xs:integer($k)
-};
+(: Half a million lines of XQuery ought to be enough for any module. :)
+declare variable $LIMIT as xs:integer := 654321 ;
 
 declare private function cover:_put(
   $map as map:map,
@@ -55,103 +50,33 @@ declare private function cover:_map-from-sequence(
   cover:_map-from-sequence(map:map(), $seq)
 };
 
-(:
- : This function stops on breakpoints, updating the results map.
- : This is dead code, but might come in handy some time.
- :)
-declare private function cover:actual-via-debug(
-  $request as xs:unsignedLong,
-  $modules as xs:string+,
-  $results-map as map:map)
+declare private function cover:_task-cancel-safe(
+  $id as xs:unsignedLong)
 {
-  (: Advance to the first breakpoint. :)
-  dbg:finish($request),
-  (: Conserve stack space by using a loop instead of recursion. :)
   try {
-    let $timeout := 125
-    for $i in 1 to 7654321
-    let $status := dbg:status($request)
-    let $expr-id := $status/dbg:request/dbg:expr-id/fn:data(.)
-    (: If there is no expression and the request is not running, we are done. :)
-    let $is-running := ($status/dbg:request/dbg:request-status = 'running')
-    let $should-wait := fn:not($expr-id) and $is-running
-    let $is-break := fn:not($expr-id) and fn:not($is-running)
-    let $maybe-detach :=
-      if (fn:not($is-break) or fn:empty($status/dbg:request)) then ()
-      else
-        try { dbg:detach($request) }
-        catch ($ex) {
-          if (fn:not($ex/error:code = 'DBG-REQUESTRECORD')) then xdmp:rethrow()
-          else () }
-    return
-      if ($is-break) then fn:error((), 'XRAY-BREAKLOOP')
-      else if ($should-wait) then dbg:wait($request, $timeout)
-      else
-        let $expr as element() := dbg:expr($request, $expr-id)
-        let $uri := ($expr/dbg:uri/fn:string(), '')[1]
-        let $map := map:get($results-map, $uri)[1]
-        let $key := $expr/dbg:line/fn:string()
-        (: In theory we should never put the same key twice. :)
-        let $put := cover:_put($map, $key)
-        let $clear := dbg:clear($request, $expr-id)
-        let $continue := dbg:continue($request)
-        return dbg:wait($request, $timeout) }
+    xdmp:request-cancel(
+      xdmp:host(), xdmp:server("TaskServer"), $id) }
   catch ($ex) {
-    if (fn:not($ex/error:code = 'XRAY-BREAKLOOP')) then xdmp:rethrow()
-    else () }
-};
-
-declare function cover:cover(
-  $request as xs:unsignedLong,
-  $modules as xs:string+,
-  $results-map as map:map)
-{
-  cover:actual-via-debug($request, $modules, $results-map)
-  ,
-  if ($DEBUG) then
-    for $uri in $modules
-    let $map := map:get($results-map, $uri)[1]
-    return xdmp:log(text { 'DEBUG', $uri, 'actual', map:count($map), 'lines' })
-  else ()
-  ,
-  (: reprocess :)
-  for $key in map:keys($results-map)
-  let $seq := map:get($results-map, $key)
-  let $actual := $seq[1]
-  let $wanted := $seq[2]
-  let $assert :=
-    if (map:count($actual - $wanted) eq 0) then ()
-    else fn:error((), 'BAD', map:keys($actual - $wanted))
-  order by $key
-  return element coverage {
-    attribute uri { $key },
-    element wanted {
-      for $line in xs:integer(map:keys($wanted))
-      order by $line
-      return $line },
-    element actual {
-      for $line in xs:integer(map:keys($actual))
-      order by $line
-      return $line },
-    element missing {
-      for $line in xs:integer(map:keys($wanted - $actual))
-      order by $line
-      return $line } }
+    if ($ex/error:code eq 'XDMP-NOREQUEST') then ()
+    else xdmp:rethrow() }
 };
 
 declare private function cover:_prepare-from-request(
   $request as xs:unsignedLong,
   $uri as xs:string,
+  $limit as xs:integer,
   $results-map as map:map)
 {
-  if ($DEBUG) then xdmp:log(text { 'DEBUG request', $request, 'module', $uri }) else (),
+  if (not($log:DEBUG)) then () else log:debug(
+    'cover:_prepare-from-request',
+    ('request', $request, 'module', $uri)),
+
   try {
     let $lines-map := map:get($results-map, $uri)[2]
     (: Semi-infinite loop, to be broken using DBG-LINE.
      : This avoids stack overflow errors.
-     : Half a million lines of XQuery ought to be enough for any module.
      :)
-    for $line in 1 to 654321
+    for $line in 1 to $limit
     (: We only need to break once per line, but we set a breakpoint
      : on every expression to maximize the odds of seeing that line.
      : But dbg:line will return the same expression more than once,
@@ -166,11 +91,20 @@ declare private function cover:_prepare-from-request(
     let $expr := dbg:expr($request, $expr-id)
     let $key := $expr/dbg:line/fn:string()
     where fn:not(map:get($lines-map, $key))
-    return cover:_put($lines-map, $key) }
+    return cover:_put($lines-map, $key),
+    (: We should always hit EOF and DBG-LINE before this.
+     : Tell the caller that we could not do it.
+     :)
+    cover:_task-cancel-safe($request),
+    fn:error(
+      (), 'XRAY-TOOBIG',
+      ('Module is too large for code coverage limit:', $limit)) }
   catch ($ex) {
-    if (fn:not($ex/error:code = ("DBG-LINE", "DBG-MODULEDNE"))) then xdmp:rethrow()
-    else ()
-  }
+    if ($ex/error:code = ("DBG-LINE")) then ()
+    else (
+      (: Avoid leaving tasks in error state on the task server. :)
+      cover:_task-cancel-safe($request),
+      xdmp:rethrow()) }
 };
 
 declare private function cover:_prepare-R(
@@ -180,16 +114,20 @@ declare private function cover:_prepare-R(
   $path as xs:string)
 {
   (: TODO implement caching :)
-  if ($DEBUG) then xdmp:log(text { 'DEBUG function', fn:string(xdmp:function-name($fn)), fn:count($rest) }) else (),
+  if (not($log:DEBUG)) then () else log:debug(
+    'cover:_prepare-R',
+    ('function', fn:string(xdmp:function-name($fn)), fn:count($rest))),
+
   let $modules := map:keys($results-map)
   let $request := dbg:eval(cover:query($fn, $path))
-  let $do := (
-    _prepare-from-request($request, $modules, $results-map),
-    xdmp:request-cancel(xdmp:host(), xdmp:server("TaskServer"), $request))
-  let $modules-remaining :=
+  let $_ := _prepare-from-request($request, $modules, $LIMIT, $results-map)
+  let $_ := _task-cancel-safe($request)
+  let $modules-remaining := (
     for $uri in $modules
+    let $_ := if (not($log:DEBUG)) then () else log:debug(
+      'cover:_prepare-R', ('module', $uri))
     where map:count(map:get($results-map, $uri)[2]) eq 0
-    return $uri
+    return $uri)
   (: Continue recursion until we run out of modules or functions.
    : If we run out of functions, the results will show 0 lines to be covered.
    :)
@@ -216,7 +154,8 @@ as map:map
   for $m in $modules
   return map:put($results-map, $m, (map:map(), map:map()))
   ,
-  cover:_prepare-R($functions[1], fn:subsequence($functions, 2), $results-map, $path)
+  cover:_prepare-R(
+    $functions[1], fn:subsequence($functions, 2), $results-map, $path)
   ,
   $results-map
 };
@@ -248,18 +187,18 @@ declare private function cover:_result(
 
 declare function cover:results(
   $results-map as map:map,
-  $results as item()*,
-  $did-succeed as xs:boolean)
+  $results as item()*)
 {
   (: TODO if we bring in cprof this will need to change. :)
   $results[fn:not(. instance of element(prof:report))]
   ,
-  if (fn:not($did-succeed)) then () else
   (: report test-level coverage data :)
   let $modules := map:keys($results-map)
   let $do := (
     (: Populate the coverage maps from the profiler output. :)
-    for $expr in $results[. instance of element(prof:report)]/prof:histogram/prof:expression[prof:uri = $modules]
+    for $expr in $results[
+      . instance of element(prof:report)]/prof:histogram/prof:expression[
+      prof:uri = $modules]
     let $m := map:get($results-map, $expr/prof:uri)[1]
     let $key := $expr/prof:line/fn:string()
     where fn:not(map:get($m, $key))
@@ -268,10 +207,12 @@ declare function cover:results(
   let $seq := map:get($results-map, $uri)
   let $covered := $seq[1]
   let $wanted := $seq[2]
-  let $assert :=
-    if ($DEBUG and map:count($covered - $wanted) gt 0)
-    then xdmp:log($uri || " got more coverage than we were bargaining for: lines = " || map:keys($covered - $wanted))
-    else ()
+  let $assert := (
+    if (not($log:DEBUG and map:count($covered - $wanted) gt 0)) then ()
+    else log:warning(
+      'cover:results',
+      ($uri, "more coverage than expected: lines = ",
+        map:keys($covered - $wanted))))
   order by $uri
   return element coverage {
     attribute uri { $uri },
@@ -339,7 +280,6 @@ declare function cover:module-view-text(
   $covered as map:map,
   $missing as map:map)
 {
-  xdmp:set-response-content-type('text/plain'),
   text { 'Module', $module },
   for $i at $x in $lines
   let $key := fn:string($x)
@@ -402,7 +342,8 @@ declare function cover:module-view(
   $covered as map:map
 )
 {
-  cover:module-view($module, $format, $lines, $wanted, $covered, $wanted - $covered)
+  cover:module-view(
+    $module, $format, $lines, $wanted, $covered, $wanted - $covered)
 };
 
 
@@ -432,10 +373,24 @@ declare function cover:module-view(
 
 declare private function cover:query(
   $fn as xdmp:function,
+  $path as xs:string,
+  $qn as xs:QName
+) as xs:string
+{
+  concat(
+    'xquery version "1.0-ml"; ',
+    'import module namespace t="',
+    fn:namespace-uri-from-QName($qn),
+    '" at "', $path, '"; ',
+    't:', fn:local-name-from-QName($qn), '()')
+};
+
+declare private function cover:query(
+  $fn as xdmp:function,
   $path as xs:string
 ) as xs:string
 {
-  'xquery version "1.0-ml";
-  import module namespace t="' || fn:namespace-uri-from-QName(xdmp:function-name($fn)) || '" at "' || $path || '";
-  t:' || fn:local-name-from-QName(xdmp:function-name($fn)) || '()'
+  cover:query($fn, $path, xdmp:function-name($fn))
 };
+
+(: src/coverage.xqy :)
