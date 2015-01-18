@@ -51,7 +51,7 @@ do
 done
 
 URL="$BASEURL?format=$FORMAT&modules=$MODULES&tests=$TESTS&dir=$DIR"
-CURL="curl --silent"
+CURL="curl --silent --ipv4"
 if [ -n "$CREDENTIAL" ]; then
     CURL="$CURL --anyauth --user $CREDENTIAL"
 fi
