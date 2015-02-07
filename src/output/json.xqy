@@ -6,6 +6,9 @@ import module namespace json = "http://marklogic.com/xdmp/json" at "/MarkLogic/j
 declare namespace xray = "http://github.com/robwhitby/xray";
 declare namespace test = "http://github.com/robwhitby/xray/test";
 
+declare variable $VERSION := xs:integer(
+  substring-before(xdmp:version(), ".")) ;
+
 declare function to-json(
   $node as node()
 ) as xs:string
@@ -21,7 +24,9 @@ declare function to-json(
         fn:QName("http://marklogic.com/xdmp/error", "frame"))),
       map:put($config, "element-namespace", "http://github.com/robwhitby/xray"),
       $config)
-  return 
-    json:transform-to-json($node, $custom)
+  let $json := json:transform-to-json($node, $custom)
+  return
+    if ($VERSION ge 8) then xdmp:quote($json)
+    else $json
 };
 
