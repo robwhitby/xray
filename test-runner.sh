@@ -14,7 +14,6 @@ TESTS=
 #####################################################################
 
 
-START=$(date +%s)
 CRED=$(tput setaf 1)
 CGREEN=$(tput setaf 2) 
 CYELLOW=$(tput setaf 3)
@@ -62,19 +61,18 @@ if [ "$RESPONSE" = "" ]; then
   STATUS=1
 fi
 
-while read -r LINE; do
-  case $LINE in
+while IFS= read -r LINE; do
+  case "${LINE}" in
     Module*) printf $CDEFAULT;;
-    *PASSED) printf $CGREEN;;
-    *IGNORED) printf $CYELLOW;;
-    *FAILED) STATUS=1; printf $CRED;;
+    *PASSED*) printf $CGREEN;;
+    *IGNORED*) printf $CYELLOW;;
+    *FAILED*) STATUS=1; printf $CRED;;
     ERROR*) STATUS=1; printf $CRED;;
     Finished*) echo && if [ $STATUS -eq 1 ]; then printf $CRED; else printf $CGREEN; fi;;
   esac
-  echo $LINE
+  echo "${LINE}"
 done <<< "$RESPONSE"
 
-DIFF=$(( $(date +%s) - $START ))
 if [ $FORMAT == "text" ]; then
   printf $CDEFAULT
 fi
