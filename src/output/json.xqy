@@ -13,7 +13,6 @@ declare function to-json(
   $node as node()
 ) as xs:string
 {
-  let $_ := xdmp:log($node)
   let $custom :=
     let $config := json:config("custom")
     return (
