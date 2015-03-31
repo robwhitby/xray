@@ -145,10 +145,19 @@ declare function run-module(
     )
   }
   catch($ex) {
+    (: https://github.com/spig/xray/commit/3bf0e7facaa5260f19556bf431469d967d00c3c1 :)
     switch ($ex/error:code)
-      case "XDMP-IMPMODNS" return () (: ignore - module not in test namespace :)
-      case "XDMP-IMPORTMOD" return () (: ignore - main module :)
-      default return $ex (: return all other errors :)
+      case "XDMP-IMPMODNS"
+        return
+          if ($ex/error:data/error:datum/fn:contains(., $path)) then
+            () (: ignore - module not in test namespace :)
+          else $ex (: must be an error in an import of the $path module :)
+      case "XDMP-IMPORTMOD"
+        return
+          if ($ex/error:data/error:datum/fn:contains(., $path)) then
+            () (: ignore - main module if path of current module :)
+          else $ex (: must be an error in an import of the $path module :)
+      default return $ex
   }
 };
 
@@ -161,8 +170,8 @@ declare function run-module-tests(
   let $fns :=
     for $f in xdmp:functions()
     let $name := fn-local-name($f)
-    where 
-      has-test-annotation($f, ("setup", "teardown")) or 
+    where
+      has-test-annotation($f, ("setup", "teardown")) or
       has-test-annotation($f, ("case", "ignore")) and fn:matches($name, $test-pattern)
     order by $name
     return $f
