@@ -6,6 +6,7 @@ import module namespace modules = "http://github.com/robwhitby/xray/modules" at 
 declare default element namespace "http://github.com/robwhitby/xray";
 
 declare variable $XRAY-VERSION := "2.0";
+declare variable $ROOT := fn:substring-before(xdmp:get-request-path(), "/xray/");
 
 declare function run-tests(
   $test-dir as xs:string,
@@ -135,7 +136,7 @@ declare function run-module(
   try {
     xdmp:eval('
       xquery version "1.0-ml";
-      import module namespace xray = "http://github.com/robwhitby/xray" at "/xray/src/xray.xqy";
+      import module namespace xray = "http://github.com/robwhitby/xray" at "' || $ROOT || '/xray/src/xray.xqy";
       import module namespace test = "http://github.com/robwhitby/xray/test" at "' || $path || '";
       declare variable $xray:path as xs:string external;
       declare variable $xray:test-pattern as xs:string external;
