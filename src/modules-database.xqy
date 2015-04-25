@@ -19,14 +19,24 @@ declare function get-modules(
     declare variable $pattern as xs:string external;
     declare variable $modules-root as xs:string external;
 
-    let $uri-prefix := fn:concat($modules-root, fn:replace($test-dir, "^[/\\]+", ""))
-    for $doc in fn:collection()
-    let $uri := xdmp:node-uri($doc)
-    where
-      fn:starts-with($uri, $uri-prefix)
-      and fn:matches($uri, "\.xq[my]?$")
-      and (fn:ends-with($uri, $pattern) or fn:matches(fn:substring-after($uri, $modules-root), fn:string($pattern)))
-    return $uri
+    try {
+      let $uri-prefix := fn:concat($modules-root, fn:replace($test-dir, "^[/\\]+", ""), "*")
+      for $uri in cts:uri-match($uri-prefix)
+      where
+        fn:matches($uri, "\.xq[my]?$")
+        and (fn:ends-with($uri, $pattern) or fn:matches(fn:substring-after($uri, $modules-root), fn:string($pattern)))
+      return $uri
+    }
+    catch($ex) {
+      let $uri-prefix := fn:concat($modules-root, fn:replace($test-dir, "^[/\\]+", ""))
+      for $doc in fn:collection()
+      let $uri := xdmp:node-uri($doc)
+      where
+        fn:starts-with($uri, $uri-prefix)
+        and fn:matches($uri, "\.xq[my]?$")
+        and (fn:ends-with($uri, $pattern) or fn:matches(fn:substring-after($uri, $modules-root), fn:string($pattern)))
+      return $uri
+    }
   ',
   (
     xs:QName("test-dir"), $test-dir,
