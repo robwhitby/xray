@@ -2,7 +2,7 @@ xquery version "1.0-ml";
 
 module namespace modules-db = "http://github.com/robwhitby/xray/modules-db";
 
-declare private variable $eval-options :=
+declare %private variable $eval-options :=
   <options xmlns="xdmp:eval">
     <database>{xdmp:modules-database()}</database>
   </options>;

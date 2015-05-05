@@ -9,7 +9,7 @@ import module namespace assert = "http://github.com/robwhitby/xray/assertions" a
   add any test docs used by the tests in this module
 :)
 
-declare private variable $test-docs :=
+declare %private variable $test-docs :=
   <docs>
     <doc uri="one.xml">
       <root><test>one</test></root>

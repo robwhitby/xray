@@ -7,8 +7,8 @@ declare namespace test = "http://github.com/robwhitby/xray/test";
 import module namespace modules-fs = "http://github.com/robwhitby/xray/modules-fs" at "modules-filesystem.xqy";
 import module namespace modules-db = "http://github.com/robwhitby/xray/modules-db" at "modules-database.xqy";
 
-declare private variable $TEST-NS-URI := fn:namespace-uri-for-prefix("test", <test:x/>);
-declare private variable $USE-MODULES-DB := (xdmp:modules-database() ne 0);
+declare %private variable $TEST-NS-URI := fn:namespace-uri-for-prefix("test", <test:x/>);
+declare %private variable $USE-MODULES-DB := (xdmp:modules-database() ne 0);
 
 
 declare function get-modules(

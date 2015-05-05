@@ -16,7 +16,7 @@ declare function get-modules(
 };
 
 
-declare private function module-filenames(
+declare %private function module-filenames(
   $dir as xs:string
 ) as xs:string*
 {
@@ -32,14 +32,14 @@ declare private function module-filenames(
 };
 
 
-declare private function filesystem-directory-exists(
+declare %private function filesystem-directory-exists(
   $dir as xs:string
 ) as xs:boolean
 {
   try  { fn:exists(xdmp:filesystem-directory($dir)) }
-  catch($e)
+  catch *
   {
-    if ($e/error:code = "SVC-DIROPEN")
+    if ($err:code = "SVC-DIROPEN")
     then fn:false()
     else xdmp:rethrow()
   }
