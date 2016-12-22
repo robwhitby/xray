@@ -34,26 +34,6 @@
             <xsl:call-template name="no-tests"/>
           </xsl:otherwise>
         </xsl:choose>
-        <script>
-            function collapseAll(){
-                var details = document.getElementsByTagName("details");
-                //NS: For some reason the page doesn't load if I use for{} and I can't use forEach of details
-                //hence the hack
-                var hack = new Array(details.length).fill(0);
-                hack.forEach(function(item, index){
-                    details[index].removeAttribute("open");
-                });
-            };
-            function expandAll(){
-                var details = document.getElementsByTagName("details");
-                //NS: For some reason the page doesn't load if I use for{} and I can't use forEach of details
-                //hence the hack
-                var hack = new Array(details.length).fill(0);
-                hack.forEach(function(item, index){
-                    details[index].setAttribute("open", "true");
-                });
-            };
-        </script>
       </body>
     </html>
   </xsl:template>
@@ -105,12 +85,22 @@
         <label for="module-pattern"><abbr title="regex match on module name">modules</abbr></label>
         <input type="text" name="modules" id="module-pattern" value="{$module-pattern}"/>
         <label for="test-pattern"><abbr title="regex match on test name">tests</abbr></label>
-        <input type="text" name="tests" id="test-pattern" value="{$test-pattern}"/> 
+        <input type="text" name="tests" id="test-pattern" value="{$test-pattern}"/>
         <input type="hidden" name="format" value="html"/>
         <button>run</button>
       </form>
-      <button onclick="collapseAll()">Collapse All</button>
-      <button onclick="expandAll()">Expand All</button>
+      <xsl:if test="xray:module[xray:test|error:error]">
+        <button onclick="collapseAll()">Collapse All</button>
+        <button onclick="expandAll()">Expand All</button>
+        <script type="text/javascript">
+            function collapseAll() {
+              document.querySelectorAll("details").forEach(function(d) { d.removeAttribute("open") });
+            };
+            function expandAll() {
+              document.querySelectorAll("details").forEach(function(d) { d.setAttribute("open", "true") });
+            };
+        </script>
+      </xsl:if>
     </header>
   </xsl:template>
 
@@ -183,9 +173,9 @@ declare %test:case function <span class="f">node-should-equal-foo</span> ()
     <xsl:param name="module" as="xs:string"/>
     <xsl:param name="test" as="xs:string?"/>
     <xsl:param name="format" as="xs:string?"/>
-    <xsl:value-of select="concat('?dir=', $test-dir, 
-                                '&amp;modules=', encode-for-uri($module), 
-                                '&amp;tests=', encode-for-uri($test), 
+    <xsl:value-of select="concat('?dir=', $test-dir,
+                                '&amp;modules=', encode-for-uri($module),
+                                '&amp;tests=', encode-for-uri($test),
                                 '&amp;format=', $format)"/>
   </xsl:function>
 
