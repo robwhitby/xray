@@ -34,13 +34,39 @@
             <xsl:call-template name="no-tests"/>
           </xsl:otherwise>
         </xsl:choose>
+        <script>
+            function collapseAll(){
+                var details = document.getElementsByTagName("details");
+                //NS: For some reason the page doesn't load if I use for{} and I can't use forEach of details
+                //hence the hack
+                var hack = new Array(details.length).fill(0);
+                hack.forEach(function(item, index){
+                    details[index].removeAttribute("open");
+                });
+            };
+            function expandAll(){
+                var details = document.getElementsByTagName("details");
+                //NS: For some reason the page doesn't load if I use for{} and I can't use forEach of details
+                //hence the hack
+                var hack = new Array(details.length).fill(0);
+                hack.forEach(function(item, index){
+                    details[index].setAttribute("open", "true");
+                });
+            };
+        </script>
       </body>
     </html>
   </xsl:template>
 
   <xsl:template match="xray:module">
     <section>
-      <details open="true">
+      <details>
+        <xsl:choose>
+            <xsl:when test="@failed ne '0' or @error ne '0'">
+                <xsl:attribute name="open">true</xsl:attribute>
+            </xsl:when>
+            <xsl:otherwise></xsl:otherwise>
+        </xsl:choose>
         <summary>
           <xsl:attribute name="class">
             <xsl:choose>
@@ -83,6 +109,8 @@
         <input type="hidden" name="format" value="html"/>
         <button>run</button>
       </form>
+      <button onclick="collapseAll()">Collapse All</button>
+      <button onclick="expandAll()">Expand All</button>
     </header>
   </xsl:template>
 
