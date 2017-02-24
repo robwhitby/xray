@@ -208,14 +208,19 @@ declare private function transform(
   $format as xs:string
 ) as document-node()
 {
-  if ($format eq "text") then xdmp:set-response-content-type("text/plain") else (),
-  if ($format eq "json") then xdmp:set-response-content-type("application/json") else (),
-  if ($format ne "xml")
-  then
+  xdmp:set-response-content-type(
+    if ($format eq "text") then "text/plain"
+    else if ($format eq "json") then "application/json"
+    else if ($format eq "html") then "text/html"
+    else "application/xml"
+  ),
+
+  if ($format eq "xml") then document { $el }
+  else
     let $params := map:map()
     let $_ := map:put($params, "test-dir", $test-dir)
     let $_ := map:put($params, "module-pattern", $module-pattern)
     let $_ := map:put($params, "test-pattern", $test-pattern)
     return xdmp:xslt-invoke(fn:concat("output/", $format, ".xsl"), $el, $params)
-  else document { $el }
 };
+
