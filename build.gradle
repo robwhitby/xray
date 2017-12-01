@@ -1,0 +1,29 @@
+
+/*
+	This is a skeleton build.gradle file that shows how to utilize the xray.gradle test runner
+	extension for Gradle.  This is NOT the build.gradle for the XRay project itself.
+	Ron Hitchens (ron@overstory.co.uk)
+ */
+
+buildscript {
+	repositories {
+		jcenter()
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'	// Needed for XRay
+	}
+}
+
+apply from: 'xray.gradle'
+apply plugin: 'java'
+
+// If not using the 'java' plugin, comment out this line and just run "gradle xray"
+test.dependsOn (xray)
+
+// ------------------------------
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.3.1'
+}
+
