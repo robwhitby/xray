@@ -11,7 +11,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'	// Needed for XRay
+		classpath 'io.github.http-builder-ng:http-builder-ng-core:1.0.+'	// Not needed here, but satisfies dependencies for IDE editing of xray.gradle
 	}
 }
 

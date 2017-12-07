@@ -1,11 +1,11 @@
-
 /*
 	Gradle file to run XRay tests.  Including this in your gradle project will enable running of
 	XRay tests along with the 'test' task in your build.  If any XRay tests fail/error, then the
 	build will fail.
 
 	To use this, the XRay XQuery unit testing framework must be installed and invokable on an
-	HTTP appserver.  See the XRay project for details:
+	HTTP appserver.  The default is http://localhost:1234/xray (see properties below)  See the
+	XRay project for details:
 
 		https://github.com/robwhitby/xray
 
@@ -13,16 +13,11 @@
 
 		apply from: 'xray.gradle'
 
-	And add the http-builder dependency to the buildscript/dependencies section there (it needs
-	to be in scope before this script starts)
-
-		classpath group: 'org.codehaus.groovy.modules.http-builder', name: 'http-builder', version: '0.7.1'
-
 	In your build.gradle file, just add this line to run XRay tests with defaults:
 
 		test.dependsOn (xray)
 
-	Note that the above requires that you apply either the Java or Groovy plugin to define the compile/test/build
+	Note that the above requires that you also apply either the Java or Groovy plugin to define the compile/test/build
 	lifecycle tasks.  If you don't want/need those, you can run the xray task directly.
 
 	This will run the XRay tests with defaults, or the property settings found in scope.  To customize
@@ -35,13 +30,15 @@
 		xray.path=/xray
 		xray.user=
 		xray.password=
+		xray.quiet=true
+		xray.basic-auth=false
+		xray.outputXUnit=true
 
-	These are the defaults (user and password are empty by default).  If user/password are supplied, then HTTP basic
-	credentials are applied to the request.  Digest auth is currently not possible, because the HttpBuilder class does
-	not support it.
+	These are the defaults (user and password are empty by default).  If user/password are supplied, then HTTP digest
+	credentials are applied to the request (or basic credentials if basic-auth is true).
 
-	If you want to specify settings in your build.gradle then configure the task like this (settable properties are at the
-	top of the XRayTask class below)
+	If you want to specify settings directly in your build.gradle then configure the task like this (settable properties are
+	at the top of the XRayTask class below)
 
 		xray {
 			host = 'dev.mycompany.com'
@@ -61,10 +58,9 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'
+		classpath 'io.github.http-builder-ng:http-builder-ng-core:1.0.+'
 	}
 }
-
 
 task xray (type: XRayTask) {
 	group = 'verification'
@@ -73,23 +69,27 @@ task xray (type: XRayTask) {
 
 // -------------------------------------------------------------------------
 
-import groovyx.net.http.HTTPBuilder
-import groovyx.net.http.Method
-import groovyx.net.http.HttpResponseDecorator
 import groovy.util.slurpersupport.GPathResult
+import groovy.xml.StreamingMarkupBuilder
+import groovy.xml.XmlUtil
+import groovyx.net.http.FromServer
+import groovyx.net.http.HttpBuilder
 
 class XRayTask extends DefaultTask
 {
 	public String scheme = getPropertyWithDefault ('xray.scheme', 'http')
 	public String host = getPropertyWithDefault ('xray.hostname', 'localhost')
-	public int port = Integer.parseInt (getPropertyWithDefault ('xray.port', '1234'))
-	public String path = getPropertyWithDefault ('xray.path', '/xray')	// the path to invoke xray/index.xqy on the appserver
+	public int port = Integer.parseInt (getPropertyWithDefault('xray.port', '1234'))
+	public String path = getPropertyWithDefault ('xray.path', '/xray')// the path to invoke xray/index.xqy on the appserver
 	public String user = getPropertyWithDefault ('xray.user', null)
 	public String password = getPropertyWithDefault ('xray.password', null)
-	public boolean quiet = Boolean.parseBoolean (getPropertyWithDefault ('xray.quiet', 'false'))	// set true to suppress passing tests
-	public Map<String,String> parameters = [:]	// XRay query params for dir, module, etc.  Not settable by properties.  Format is always forced to 'xml'.
+	public boolean basicAuth = Boolean.parseBoolean (getPropertyWithDefault ('xray.basic-auth', 'false'))
+	public boolean quiet = Boolean.parseBoolean (getPropertyWithDefault ('xray.quiet', 'false'))// set true to suppress passing tests
+	public Map<String, String> parameters = [:]	// XRay query params for dir, module, etc.  Not settable by properties.  Format is always forced to 'xml'.
+	public boolean outputXUnit = Boolean.parseBoolean (getPropertyWithDefault ('xray.output-xunit', 'true'))	// set false to suppress JUnit-style output
 
-	private static final Map<String,String> colors = [failed:'\033[31m', error: '\033[1;31m', passed: '\033[32m', ignored: '\033[33m']
+	static String markLogicErrorNS = 'http://marklogic.com/xdmp/error'
+	private static final Map<String, String> colors = [failed: '\033[31m', error: '\033[1;31m', passed: '\033[32m', ignored: '\033[33m']
 
 	@TaskAction
 	void runXRay()
@@ -100,56 +100,54 @@ class XRayTask extends DefaultTask
 
 			printResults (results, quiet, colors, startTime)
 		} catch (TaskExecutionException e) {
-			throw e		// pass through, thrown from printResults if there were failures
+			throw e        // pass through, thrown from printResults if there were failures
 		} catch (Exception e) {
 			println "XRay: Unexpected exception invoking XRay tests: ${e}"
-			throw new TaskExecutionException (this, e)
+			throw new TaskExecutionException(this, e)
 		}
 	}
 
 	private GPathResult invokeXrayTests()
 	{
 		String uriString = "${scheme}://${host}:${port}${path}"
-		HTTPBuilder builder = new HTTPBuilder (uriString)
-		String result = null
-
-		if (user != null) builder.auth.basic (user, password)
 
 		println "XRay tests starting on ${uriString}"
 
-		builder.request (Method.GET) {
-			parameters ['format'] = 'xml'
-			uri.query = parameters
+		HttpBuilder http = HttpBuilder.configure {
+			request.uri = uriString
 
-			response.success = { HttpResponseDecorator resp ->
-				if (resp.statusLine.statusCode == 200) {
-					result = resp.entity.content.text
+			if (user != null) {
+				if (basicAuth) {
+					request.auth.basic (user, password)
 				} else {
-					String msg = "HTTP request unexpected HTTP response: ${resp.statusLine.statusCode}"
-					println msg
-					throw new RuntimeException (msg)
+					request.auth.digest (user, password)
 				}
-
-			}
-			response.failure = { HttpResponseDecorator resp ->
-				String msg = "Unexpected error response from XRay tests: ${resp.statusLine.statusCode}"
-				println msg
-				throw new RuntimeException (msg)
 			}
 		}
 
-		new XmlSlurper().parseText (result)
+		return http.get {
+			parameters['format'] = 'xml'
+			request.uri.query = parameters
+
+			response.success { FromServer fs, Object body ->
+				body
+			}
+
+			response.failure { FromServer fs ->
+				String msg = "Unexpected error response from XRay tests: ${fs.statusCode}"
+				println msg
+				throw new RuntimeException (msg)
+			}
+		} as GPathResult
 	}
 
-	private void printResults (GPathResult xml, boolean quiet, Map<String,String> colors, long startTime)
+	private void printResults (GPathResult xml, boolean quiet, Map<String, String> colors, long startTime)
 	{
 		int pass = 0
 		int ignore = 0
 		int fail = 0
 		int error = 0
 		int total = 0
-
-		Set<String> notPass = ["failed", "error"]
 
 		xml.module.each {
 			total += Integer.parseInt (it.'@total'.text())
@@ -161,41 +159,102 @@ class XRayTask extends DefaultTask
 			int e = Integer.parseInt (it.'@error'.text())
 			error += e
 
-			boolean printModuleInfo = ( ! quiet) || ((e + f + i) != 0)
+			boolean printModuleInfo = (!quiet) || ((e + f + i) != 0)
 
-			if (printModuleInfo)  {
+			if (printModuleInfo) {
 				println "Module: ${it.'@path'.text()}, total=${it.'@total'.text()}, pass=${it.'@passed'.text()}, fail=${it.'@failed'.text()}, error=${it.'@error'.text()}, ignore=${it.'@ignored'.text()}"
 			}
 
 			it.test.each {
+				it.declareNamespace (error: markLogicErrorNS)
+
 				String result = it.'@result'.text()
-				boolean printTestDetail = ( ! quiet) || ( ! "passed".equals (result))
+				boolean printTestDetail = (!quiet) || (!"passed".equals(result))
 
-				if (printTestDetail) println " ${colors[result]}${result.toUpperCase()}\033[0m: ${it.'@name'.text()} (${it.'@time'.text()})"
+				if (printTestDetail) println " ${colors[result]}${result.toUpperCase()}: ${it.'@name'.text()}\033[0m (${it.'@time'.text()})"
 
-				if (notPass.contains (result)) {
+				if ('failed'.equals (result)) {
 					println "     assert: ${it.assert.'@test'.text()}"
 					println "     actual: ${it.assert.actual.text()}"
 					println "   expected: ${it.assert.expected.text()}"
 					println "    message: ${it.assert.message.text()}"
 				}
+
+				if ('error'.equals (result)) {
+					if (it.'error:error'.'error:message') {
+						println "  Message: ${it.'error:error'.'error:message'.text()}, see xUnit output for stack trace"
+					} else {
+						println "  Unknown error, see xUnit output for details"
+					}
+				}
 			}
+
+			if (outputXUnit) this.writeXUnit (it)
 		}
 
-		double seconds = (double)(System.currentTimeMillis() - startTime) / 1000.0
+		double seconds = (double) (System.currentTimeMillis() - startTime) / 1000.0
 		int notPassed = error + fail
-		String color = (notPassed != 0) ? colors ['failed'] : (ignore != 0) ? colors ['ignored'] : colors ['passed']
+		String color = (notPassed != 0) ? colors['failed'] : (ignore != 0) ? colors['ignored'] : colors['passed']
 
 		println "XRay results: ${color}total=${total}, pass=${pass}, fail=${fail}, error=${error}, ignore=${ignore}\033[0m, elapsed ${seconds} seconds"
 
 		if (notPassed > 0) {
-			throw new TaskExecutionException (this, new RuntimeException ("There were ${notPassed} XRay test failures"))
+			throw new TaskExecutionException (this, new RuntimeException ("There ${(notPassed == 1) ? 'was' : 'were'} ${notPassed} XRay test failure${(notPassed == 1) ? '' : 's'}"))
 		}
+	}
+
+	private final String testFilePathRoot = "${project.buildDir.path}/test-results/test"
+	private final File  testsDir = new File (testFilePathRoot)
+
+	void writeXUnit (GPathResult m)
+	{
+		if ( ! testsDir.exists()) {
+			if ( ! testsDir.mkdirs()) {
+				throw new TaskExecutionException (this, new RuntimeException ("Cannot create xUnit test output directory: ${testsDir.path}"))
+			}
+		}
+
+		StreamingMarkupBuilder builder = new StreamingMarkupBuilder()
+		builder.encoding = 'UTF-8'
+
+		def xml = builder.bind {
+			mkp.declareNamespace (error: markLogicErrorNS)
+
+			it.testsuite (name: m.'@path'.text(), classname: m.'@path'.text(), tests: m.'@total'.text(), errors: m.'@error'.text(), failures: m.'@failed'.text(), skipped: m.'@ignored'.text()) {
+				m.test.each { GPathResult t ->
+					t.declareNamespace (error: markLogicErrorNS)
+
+					it.testcase (name: t.'@name'.text(), time: t.'@time'.text()) {
+						switch (t.'@result'.text()) {
+						case 'passed':
+							break
+						case 'ignored':
+							skipped()
+							break
+						case 'error':
+							error (message: t.'error:error'.'error:message'.text()) {
+								mkp.yieldUnescaped (builder.bindNode (t.'*').toString())
+							}
+							break
+						case 'failed':
+							failure (type: t.assert.'@test'.text(), "expected: ${t.assert.expected.text()}, actual: ${t.assert.actual.text()}, message: ${t.assert.message.text()}".toString())
+							break
+						}
+					}
+				}
+			}
+		}
+
+		String testFilename = "${testFilePathRoot}/TEST-${m.'@path'.text().substring (1).replaceAll ('/|\\\\', '_')}.xml"
+		FileOutputStream stream = new FileOutputStream (new File (testFilename))
+
+		stream << XmlUtil.serialize (xml)
+
+		stream.close()
 	}
 
 	private String getPropertyWithDefault (String propName, String defaultValue)
 	{
-		(project.hasProperty (propName)) ? project.properties[propName] : defaultValue
+		(project.hasProperty(propName)) ? project.properties[propName] : defaultValue
 	}
 }
-
