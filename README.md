@@ -16,9 +16,12 @@ declare %test:case function string-equality-example ()
 
 ## Getting Started
 * Clone/copy/symlink xray into the root directory of your project e.g.<br/>
-`git clone git://github.com/robwhitby/xray.git`  
-or  
-`git submodule add git://github.com/robwhitby/xray.git` 
+`git clone git://github.com/robwhitby/xray.git`  <br/>
+or<br/>
+`git submodule add git://github.com/robwhitby/xray.git` <br/>
+or<br/>
+`git subtree add --prefix path/to/xray/parent git://github.com/robwhitby/xray.git master --squash`
+` 
 * Create an HTTP app server pointing to the root directory of your project.
 * Check all is well at `http://server:port/xray/`
 * Write some tests..
@@ -102,6 +105,10 @@ This still allows using `-t` and `-m` to select which tests to run but removes t
 
 See `run-xray-tests.sh` for an example.
 
+## Running XRay tests from Gradle
+
+If you build your project with Gradle, you can run XRay tests along with the `test` task by
+including the `xray.gradle` file in your build.gradle (see instruction in that file).
 
 ## Gradle Users
 Integrate xray test into your project's build using this Gradle plugin from [Ron Hitchens](https://github.com/ronhitchens):
