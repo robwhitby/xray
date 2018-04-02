@@ -103,6 +103,12 @@ This still allows using `-t` and `-m` to select which tests to run but removes t
 See `run-xray-tests.sh` for an example.
 
 
+## Gradle Users
+Integrate xray test into your project's build using this Gradle plugin from [Ron Hitchens](https://github.com/ronhitchens):
+
+https://github.com/overstory/xray-gradle-plugin
+
+
 ## Assertions
 ```xquery
 assert:equal ($actual as item()*, $expected as item()*, [$message as xs:string?])
