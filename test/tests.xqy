@@ -77,7 +77,7 @@ declare %test:case function should-be-able-to-test-empty-xpath()
   return assert:empty($xml/p[3])
 };
 
-declare private function get-xml()
+declare %private function get-xml()
 {
   <test><p>para 1</p><p>para 2</p></test>
 };

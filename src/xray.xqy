@@ -92,7 +92,7 @@ declare function assert-response(
 };
 
 
-declare private function apply(
+declare %private function apply(
   $fn as function(*),
   $path as xs:string
 ) as item()*
@@ -145,17 +145,17 @@ declare function run-module(
     (xs:QName("path"), $path, xs:QName("test-pattern"), fn:string($test-pattern))
     )
   }
-  catch($ex) {
+  catch * {
     (: https://github.com/spig/xray/commit/3bf0e7facaa5260f19556bf431469d967d00c3c1 :)
-    switch ($ex/error:code)
+    switch ($err:code)
       case "XDMP-IMPMODNS"
         return
-          if ($ex/error:data/error:datum/fn:contains(., $path)) then
+          if ($err:additional/error:datum/fn:contains(., $path)) then
             () (: ignore - module not in test namespace :)
           else $ex (: must be an error in an import of the $path module :)
       case "XDMP-IMPORTMOD"
         return
-          if ($ex/error:data/error:datum/fn:contains(., $path)) then
+          if ($err:additional/error:datum/fn:contains(., $path)) then
             () (: ignore - main module if path of current module :)
           else $ex (: must be an error in an import of the $path module :)
       default return $ex
@@ -192,7 +192,7 @@ declare function has-test-annotation(
 };
 
 
-declare private function fn-local-name(
+declare %private function fn-local-name(
   $fn as function(*)
 ) as xs:string
 {
@@ -200,7 +200,7 @@ declare private function fn-local-name(
 };
 
 
-declare private function transform(
+declare %private function transform(
   $el as element(),
   $test-dir as xs:string,
   $module-pattern as xs:string?,

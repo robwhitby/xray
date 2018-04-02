@@ -132,7 +132,7 @@ declare function assert:false(
 };
 
 
-declare private function deep-equal(
+declare %private function deep-equal(
   $a as item()*,
   $b as item()*
 ) as xs:boolean
